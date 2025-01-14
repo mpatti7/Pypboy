@@ -1,0 +1,10 @@
+# Screen settings
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 480
+# SCREEN_WIDTH = 320
+# SCREEN_HEIGHT = 240
+FPS = 30
+
+# Colors
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
