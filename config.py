@@ -8,3 +8,4 @@ FPS = 30
 # Colors
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
+MAIN_GREEN = (0, 255, 0, 128)
