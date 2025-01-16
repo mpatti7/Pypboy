@@ -1,5 +1,6 @@
 import pygame
 from config import BLACK, GREEN, MAIN_GREEN, SCREEN_HEIGHT, SCREEN_WIDTH
+from components.button import Button
 
 
 class HomeView():
@@ -25,12 +26,18 @@ class HomeView():
     def draw_background(self):
         # Draw the background
         self.screen.blit(self.border_image, (0, 0))
-        self.screen.blit(self.background_image, (0, 0))
+        # self.screen.blit(self.background_image, (0, 0))
         self.overlay_image.set_alpha(128)
         self.screen.blit(self.overlay_image, (0, 0))
 
-        self.buttons['header_btns'] = self.header.draw_header()
-        self.buttons['footer_btns'] = self.footer.draw_footer()
+        # self.buttons['header_btns'] = self.header.draw_header()
+        # self.buttons['footer_btns'] = self.footer.draw_footer()
+        self.header.draw_header()
+        self.footer.draw_footer()
+    
+
+    def handle_event(self, event):
+        self.header.handle_event(event)
 
 
 
@@ -39,7 +46,10 @@ class Header():
         self.screen = screen
         self.header_surface = pygame.Surface((SCREEN_WIDTH, 20), pygame.SRCALPHA)
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
-        self.buttons = {}
+        self.buttons = [
+            Button(10, 10, 75, 25, "Stats", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Stats'), is_active=True),
+            Button(75, 10, 75, 25, "Map", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Map')),
+        ]
 
 
     def draw_header(self):
@@ -47,17 +57,39 @@ class Header():
         color = (95, 255, 177, 128)
 
         pygame.draw.line(self.header_surface, color, (5, 5), (5, 25), 2)
-
-        self.draw_button('Stats', color, 7, 7, 100, 50, 10, 7)
-
+        # self.draw_button('Stats', color, 7, 7, 100, 50, 10, 7)
         pygame.draw.line(self.header_surface, color, (5, 5), (SCREEN_WIDTH - 154, 5), 2)
         pygame.draw.line(self.header_surface, color, (SCREEN_WIDTH - 154, 5), (SCREEN_WIDTH - 154, 25), 2)
         pygame.draw.line(self.header_surface, color, (SCREEN_WIDTH - 148, 5), (SCREEN_WIDTH - 13, 5), 2)
         pygame.draw.line(self.header_surface, color, (SCREEN_WIDTH - 13, 5), (SCREEN_WIDTH - 13, 25), 2)
 
+        self.draw_buttons()
+
         self.screen.blit(self.header_surface, (0, 0))
 
         return self.buttons
+    
+
+    def draw_buttons(self):
+        for button in self.buttons:
+            button.draw(self.screen)
+
+
+    def handle_event(self, event):
+        # Delegate event handling to buttons
+        for button in self.buttons:
+            button.handle_event(event)
+    
+
+    def create_action(self, button_name):
+        def action():
+            # Set this button active and all others inactive
+            for button in self.buttons:
+                button.is_active = (button.text == button_name)
+            print(f"{button_name} button clicked!")
+
+        return action
+
     
 
     def draw_button(self, btn_text, btn_color, left, right, width, height, font_x, font_y=7):

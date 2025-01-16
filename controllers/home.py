@@ -8,10 +8,7 @@ class HomeController():
 
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = event.pos
-            if 50 <= x <= 250 and 150 <= y <= 200:  # Button boundaries
-                print("Stats button clicked!")
+        self.view.handle_event(event)
 
 
     def update(self):
