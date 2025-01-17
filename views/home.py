@@ -1,6 +1,10 @@
 import pygame
 from config import BLACK, GREEN, MAIN_GREEN, SCREEN_HEIGHT, SCREEN_WIDTH
 from components.button import Button
+from .stats import StatsView
+from .map import MapView
+from .weather import WeatherView
+from datetime import datetime
 
 
 class HomeView():
@@ -17,39 +21,49 @@ class HomeView():
         self.border_image = pygame.image.load("assets/images/border.png")
         self.border_image = pygame.transform.scale(self.border_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        self.header = Header(screen)
+        self.header = Header(screen, self.set_active_view)
         self.footer = Footer(screen)
 
-        self.buttons = {}
+        header_height = 25
+        footer_height = 40
+        self.content_area = pygame.Rect(0, header_height, screen.get_width(), screen.get_height() - header_height - footer_height)
+
+        self.active_view = StatsView(self.screen, self.content_area)
+    
+
+    def set_active_view(self, view_class):
+        self.active_view = view_class(self.screen, self.content_area)
 
 
     def draw_background(self):
-        # Draw the background
-        self.screen.blit(self.border_image, (0, 0))
-        # self.screen.blit(self.background_image, (0, 0))
         self.overlay_image.set_alpha(128)
         self.screen.blit(self.overlay_image, (0, 0))
 
-        # self.buttons['header_btns'] = self.header.draw_header()
-        # self.buttons['footer_btns'] = self.footer.draw_footer()
         self.header.draw_header()
         self.footer.draw_footer()
+
+        if self.active_view:
+            self.active_view.draw_background()
     
 
     def handle_event(self, event):
         self.header.handle_event(event)
+        if self.active_view:
+            self.active_view.handle_event(event)
 
 
 
 class Header():
-    def __init__(self, screen):
+    def __init__(self, screen, set_active_view_callback):
         self.screen = screen
         self.header_surface = pygame.Surface((SCREEN_WIDTH, 20), pygame.SRCALPHA)
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
         self.buttons = [
             Button(10, 10, 75, 25, "Stats", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Stats'), is_active=True),
             Button(75, 10, 75, 25, "Map", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Map')),
+            Button(150, 10, 75, 25, "Weather", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Weather')),
         ]
+        self.set_active_view = set_active_view_callback
 
 
     def draw_header(self):
@@ -57,7 +71,6 @@ class Header():
         color = (95, 255, 177, 128)
 
         pygame.draw.line(self.header_surface, color, (5, 5), (5, 25), 2)
-        # self.draw_button('Stats', color, 7, 7, 100, 50, 10, 7)
         pygame.draw.line(self.header_surface, color, (5, 5), (SCREEN_WIDTH - 154, 5), 2)
         pygame.draw.line(self.header_surface, color, (SCREEN_WIDTH - 154, 5), (SCREEN_WIDTH - 154, 25), 2)
         pygame.draw.line(self.header_surface, color, (SCREEN_WIDTH - 148, 5), (SCREEN_WIDTH - 13, 5), 2)
@@ -88,9 +101,15 @@ class Header():
                 button.is_active = (button.text == button_name)
             print(f"{button_name} button clicked!")
 
+            if button_name == "Stats":
+                self.set_active_view(StatsView)
+            elif button_name == "Map":
+                self.set_active_view(MapView)
+            elif button_name == "Weather":
+                self.set_active_view(WeatherView)
+
         return action
 
-    
 
     def draw_button(self, btn_text, btn_color, left, right, width, height, font_x, font_y=7):
         pygame.draw.rect(self.header_surface, btn_color, (left, right, width, height))
@@ -104,7 +123,7 @@ class Footer():
     def __init__(self, screen):
         self.screen = screen
         self.footer_surface = pygame.Surface((SCREEN_WIDTH, 20), pygame.SRCALPHA)
-        self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 36) 
+        self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20) 
 
 
     def draw_footer(self):
@@ -116,10 +135,15 @@ class Footer():
 
         # Draw lines onto the footer surface
         pygame.draw.line(self.footer_surface, color, (5, 0), (5, 18), 2)
+
+        current_time = datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M")
+        formatted_time = self.font.render(formatted_time, True, color)
+        self.footer_surface.blit(formatted_time, (15, -5))
+
         pygame.draw.line(self.footer_surface, color, (5, 18), (SCREEN_WIDTH - 13, 18), 2)
         pygame.draw.line(self.footer_surface, color, (SCREEN_WIDTH - 13, 0), (SCREEN_WIDTH - 13, 18), 2)
 
-        # Blit the footer surface onto the main screen
         self.screen.blit(self.footer_surface, (0, footer_top))
 
 
