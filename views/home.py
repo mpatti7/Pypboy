@@ -4,7 +4,12 @@ from components.button import Button
 from .stats import StatsView
 from .map import MapView
 from .weather import WeatherView
+from .radio import RadioView
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class HomeView():
@@ -32,7 +37,12 @@ class HomeView():
     
 
     def set_active_view(self, view_class):
-        self.active_view = view_class(self.screen, self.content_area)
+        if view_class == WeatherView:
+            self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("WEATHER_API_KEY"))
+        elif view_class == MapView:
+            self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("GOOGLE_MAPS_API_KEY"))
+        else:
+            self.active_view = view_class(self.screen, self.content_area)
 
 
     def draw_background(self):
@@ -62,6 +72,7 @@ class Header():
             Button(10, 10, 75, 25, "Stats", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Stats'), is_active=True),
             Button(75, 10, 75, 25, "Map", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Map')),
             Button(150, 10, 75, 25, "Weather", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Weather')),
+            Button(225, 10, 75, 25, "Radio", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Radio')),
         ]
         self.set_active_view = set_active_view_callback
 
@@ -107,6 +118,8 @@ class Header():
                 self.set_active_view(MapView)
             elif button_name == "Weather":
                 self.set_active_view(WeatherView)
+            elif button_name == "Radio":
+                self.set_active_view(RadioView)
 
         return action
 
