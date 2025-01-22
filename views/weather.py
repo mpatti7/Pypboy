@@ -72,9 +72,10 @@ class WeatherView():
 
     def fetch_weather_data(self):
         try:
+            lat, lon = self.fetch_current_location()
             response = requests.get(
                 f"http://api.weatherapi.com/v1/current.json",
-                params={"key": self.api_key, "q": "auto:ip"}
+                params={"key": self.api_key, "q": f"{lat},{lon}"}
             )
             response.raise_for_status()
             self.weather_data = response.json()
@@ -96,3 +97,18 @@ class WeatherView():
         except Exception as e:
             print(f"Error fetching weather icon: {e}")
             return None
+        
+
+    def fetch_current_location(self):
+        # Fetch current latitude and longitude based on IP address.
+        try:
+            response = requests.get("http://ip-api.com/json/")
+            data = response.json()
+            if data["status"] == "success":
+                return data["lat"], data["lon"]
+            else:
+                print("Error fetching location:", data["message"])
+                return None, None
+        except Exception as e:
+            print("Failed to fetch location:", e)
+            return None, None

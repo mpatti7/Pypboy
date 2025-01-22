@@ -17,6 +17,7 @@ psutil==6.1.1
 pygame==2.6.1
 pyproj==3.5.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2024.2
 requests==2.32.3
 shapely==2.0.6
