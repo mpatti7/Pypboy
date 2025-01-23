@@ -22,6 +22,14 @@ Install library for NumPy on Pi: `sudo apt-get install libatlas-base-dev`
 
 Install: `https://pypi.org/project/pyproj/3.6.1/`
 
+Install: `sudo apt install python3-dev python3-pip libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libsmpeg-dev libportmidi-dev libavformat-dev libswscale-dev libjpeg-dev libfreetype6-dev`
+
+`export PYGAME_DETECT_NEON=1`
+
+Then: `pip uninstall pygame`
+
+`pip install pygame --no-binary :all:`
+
 **Note:**
 
 If there's still issues when installing fiona, trying running: `pip install gdal`

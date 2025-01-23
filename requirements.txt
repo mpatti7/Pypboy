@@ -15,7 +15,7 @@ packaging==24.2
 pandas==2.0.3
 psutil==6.1.1
 pygame==2.6.1
-pyproj==3.5.0
+pyproj==3.6.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-vlc==3.0.21203

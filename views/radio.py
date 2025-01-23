@@ -44,6 +44,8 @@ class RadioView():
 
 
     def set_current_station(self, station_name):
+        if self.current_station == station_name:
+            self.stop_stream()
         self.current_station = station_name
     
 
@@ -54,6 +56,10 @@ class RadioView():
             self.radio_player.play()
         except Exception as e:
             print(f"Error playing stream: {e}")
+    
+
+    def stop_stream(self):
+        self.radio_player.stop()
 
 
     def create_action(self, button_name):
