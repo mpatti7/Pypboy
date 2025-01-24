@@ -16,16 +16,21 @@ class WeatherView():
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20) 
         self.main_font_color = (95, 255, 177, 128)
         self.background_image = pygame.image.load("assets/images/green_weather.png")
-        # self.background_image = pygame.transform.scale(self.background_image, (self.area.width * .5, self.area.height * .25))
+        self.background_image = pygame.transform.scale(self.background_image, (self.area.width * .18, self.area.height * .25))
         self.is_fetching = True
-
         self.fetch_weather_data_async()
+
+        self.weather_images = {
+            'Sunny': 'assets/images/vaultboy_sunny.png',
+            'Partly cloudy': '',
+            'Rainy': 'assets/images/vaultboy_umbrella.png'
+        }
     
 
     def draw_background(self):
 
         self.background_image.set_alpha(128)
-        self.screen.blit(self.background_image, (self.area.x+550, 25))
+        self.screen.blit(self.background_image, (self.area.right - (self.area.right * .25), self.area.top + (self.area.top * .35)))
 
         if self.is_fetching:
             self.display_loading_message()
@@ -55,7 +60,16 @@ class WeatherView():
 
         self.screen.blit(location_text, (self.area.left + 50, self.area.top + 50))
         self.screen.blit(temp_text, (self.area.left + 50, self.area.top + 90))
-        self.screen.blit(condition_text, (self.area.left + 50, self.area.top + 130))    
+        self.screen.blit(condition_text, (self.area.left + 50, self.area.top + 130))  
+
+        try:
+            weather_image = pygame.image.load(self.weather_images[condition])
+            center_x = self.area.left + (self.area.width - weather_image.get_width()) // 2
+            center_y = self.area.top + (self.area.height - weather_image.get_width()) // 2
+
+            self.screen.blit(weather_image, (center_x, center_y))
+        except Exception as e:
+            pass
 
         if self.weather_icon:
             self.screen.blit(self.weather_icon, (condition_text.get_width() + 65, self.area.top + 105))

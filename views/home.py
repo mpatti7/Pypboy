@@ -5,6 +5,7 @@ from .stats import StatsView
 from .map import MapView
 from .weather import WeatherView
 from .radio import RadioView
+from .game import GameView
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -121,6 +122,8 @@ class Header():
                 self.set_active_view(WeatherView)
             elif button_name == "Radio":
                 self.set_active_view(RadioView)
+            elif button_name == 'Game':
+                self.set_active_view(GameView)
 
         return action
 

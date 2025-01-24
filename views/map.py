@@ -62,9 +62,9 @@ class MapView():
 
             cached_map = f'assets/maps/map_image_{lat}_{lon}.png'
 
-            # if os.path.exists(cached_map):
-            #     self.map_image = pygame.image.load(cached_map)
-            #     return 'Cached map image used!'
+            if os.path.exists(cached_map):
+                self.map_image = pygame.image.load(cached_map)
+                return 'Cached map image used!'
 
             with open("assets/map_styles/fallout4_map_style.json", "r") as file:
                 SNAPPY_MAP_STYLE = json.load(file)
@@ -76,7 +76,7 @@ class MapView():
                 "zoom": 15,
                 "size": "600x400",
                 "maptype": "roadmap",
-                "style": style,
+                "style": '',
                 # "markers": f"color:red|label:A|{lat},{lon}",
                 "key": self.api_key
             }

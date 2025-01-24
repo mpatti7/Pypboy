@@ -3,7 +3,7 @@ from config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 from controllers.home import HomeController
 import os
 
-os.environ['SDL_AUDIODRIVER'] = 'pipewire'
+# os.environ['SDL_AUDIODRIVER'] = 'pipewire'
 
 
 class PipboyApp:
