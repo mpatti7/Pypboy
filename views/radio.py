@@ -3,6 +3,7 @@ from config import BLACK, GREEN, MAIN_GREEN, SCREEN_HEIGHT, SCREEN_WIDTH
 from components.button import Button
 import pygame.mixer
 import vlc
+import subprocess
 
 
 class RadioView():
@@ -17,7 +18,7 @@ class RadioView():
             {'name': 'Kiss 108', 'url': 'http://stream.revma.ihrhls.com/zc1097'}
         ]
         self.current_station = None
-        pygame.mixer.init()
+        #pygame.mixer.init()
 
         self.buttons = [
             Button(self.area.x + 50, 50, 75, 25, "Kiss 108", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Kiss 108'))
@@ -48,12 +49,37 @@ class RadioView():
             self.stop_stream()
         self.current_station = station_name
     
-
+    
     def play_stream(self, station):
         try:
             url = station['url']
-            self.radio_player = vlc.MediaPlayer(url)
+            subprocess.run(["ffplay", "-nodisp", "-autoexit", url])
+            print(f"Playing stream from: {url}")
+        except Exception as e:
+            print(f"Error playing stream: {e}")
+
+
+    def play_stream_old(self, station):
+        try:
+            url = station['url']
+        
+        # Create a VLC instance with valid options
+            instance = vlc.Instance([
+            '--no-xlib',                # Disable X11 dependency (saves resources)
+            '--network-caching=1000',   # Cache network stream (in ms)
+            '--quiet'                   # Reduce verbosity
+            ])
+        
+        # Initialize media player
+            self.radio_player = instance.media_player_new()
+        
+        # Create and attach media to the player
+            media = instance.media_new(url)
+            self.radio_player.set_media(media)
+        
+        # Start playback
             self.radio_player.play()
+            print(f"Playing stream from: {url}")
         except Exception as e:
             print(f"Error playing stream: {e}")
     
