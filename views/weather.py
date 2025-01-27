@@ -23,7 +23,8 @@ class WeatherView():
         self.weather_images = {
             'Sunny': 'assets/images/vaultboy_sunny.png',
             'Partly cloudy': '',
-            'Rainy': 'assets/images/vaultboy_umbrella.png'
+            'Rainy': 'assets/images/vaultboy_umbrella.png',
+            'Clear': ''
         }
     
 

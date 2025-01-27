@@ -9,8 +9,8 @@ class GameView():
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
 
-        self.background_image = pygame.image.load("assets/images/pipboy_stats_no_background.png")
-        self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .75, SCREEN_HEIGHT * .75))
+        self.background_image = pygame.image.load("assets/images/vaultboy_gambling.png")
+        self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .60, SCREEN_HEIGHT * .75))
 
         self.buttons = []
 

@@ -19,7 +19,8 @@ class RadioView():
 
         self.radio_stations = [
             {'name': 'Kiss 108', 'url': 'http://stream.revma.ihrhls.com/zc1097'},
-            {'name': 'Magic 106.7', 'url': 'https://live.amperwave.net/direct/audacy-wmjxfmaac-imc'}
+            {'name': 'Magic 106.7', 'url': 'https://live.amperwave.net/direct/audacy-wmjxfmaac-imc'},
+            {'name': 'Big 103.3', 'url': 'https://live.amperwave.net/direct/audacy-wbgbfmaac-imc'}
         ]
         self.current_station = None
 
