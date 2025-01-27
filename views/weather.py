@@ -54,14 +54,27 @@ class WeatherView():
         location = self.weather_data['location']['name'] 
         temp_f = self.weather_data["current"]["temp_f"]
         condition = self.weather_data["current"]["condition"]["text"]
+        wind_mph = self.weather_data['current']['wind_mph']
+        wind_chill = self.weather_data['current']['windchill_f']
+        feels_like_f = self.weather_data['current']['feelslike_f']
+        uv = self.weather_data['current']['uv']
+        
 
         location_text = self.font.render(f'Location: {location}, {self.weather_data["location"]["region"]}', True, self.main_font_color)
         temp_text = self.font.render(f"Temp: {temp_f}°F", True, self.main_font_color)
         condition_text = self.font.render(condition, True, self.main_font_color)
+        wind_mph_text = self.font.render(f'Wind: {str(wind_mph)} mph', True, self.main_font_color)
+        wind_chill_text = self.font.render(f'Wind Chill: {str(wind_chill)}°F', True, self.main_font_color)
+        feels_like_f_text = self.font.render(f'Feels Like: {str(feels_like_f)}°F', True, self.main_font_color)
+        uv_text = self.font.render(f'UV: {str(uv)}', True, self.main_font_color)
 
         self.screen.blit(location_text, (self.area.left + 50, self.area.top + 50))
         self.screen.blit(temp_text, (self.area.left + 50, self.area.top + 90))
         self.screen.blit(condition_text, (self.area.left + 50, self.area.top + 130))  
+        self.screen.blit(wind_mph_text, (self.area.left + 50, self.area.top + 170))  
+        self.screen.blit(wind_chill_text, (self.area.left + 50, self.area.top + 210))  
+        self.screen.blit(feels_like_f_text, (self.area.left + 50, self.area.top + 250))  
+        self.screen.blit(uv_text, (self.area.left + 50, self.area.top + 290))  
 
         try:
             weather_image = pygame.image.load(self.weather_images[condition])

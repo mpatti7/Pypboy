@@ -12,21 +12,30 @@ class RadioView():
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20) 
-        self.background_image = pygame.image.load("assets/images/radio.png")
-        self.background_image = pygame.transform.scale(self.background_image, (self.area.width * .25, self.area.height * .35))
+        self.background_image = pygame.image.load("assets/images/vaultboy_music.png")
+        self.background_image = pygame.transform.scale(self.background_image, (self.area.width * .50, self.area.height * .75))
         self.radio_thread = None
         self.stop_event = threading.Event()
 
         self.radio_stations = [
             {'name': 'Kiss 108', 'url': 'http://stream.revma.ihrhls.com/zc1097'},
             {'name': 'Magic 106.7', 'url': 'https://live.amperwave.net/direct/audacy-wmjxfmaac-imc'},
-            {'name': 'Big 103.3', 'url': 'https://live.amperwave.net/direct/audacy-wbgbfmaac-imc'}
+            {'name': 'Big 103.3', 'url': 'https://live.amperwave.net/direct/audacy-wbgbfmaac-imc'},
+            {'name': 'WXLO 104.5', 'url': 'https://playerservices.streamtheworld.com/api/livestream-redirect/WXLOFMAAC.aac'},
+            {'name': 'Mix 104.1', 'url': 'https://eus.rubiconproject.com/usync.html?p=7562&endpoint=us-west&auid=f8k:57e0ad9f43e2ae1b816bd54f752cbdd7'},
+            {'name': '98.5 The Sports Hub', 'url': 'https://playerservices.streamtheworld.com/api/livestream-redirect/WBZFMDIALUPAAC.aac'}
         ]
         self.current_station = None
 
         self.buttons = [
             Button(self.area.x + 50, 50, 75, 25, "Kiss 108", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Kiss 108')),
-            Button(self.area.x + 50, 100, 75, 25, "Magic 106.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Magic 106.7'))
+            Button(self.area.x + 50, 100, 75, 25, "Magic 106.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Magic 106.7')),
+            Button(self.area.x + 50, 150, 75, 25, "Big 103.3", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Big 103.3')),
+            Button(self.area.x + 50, 200, 75, 25, "WXLO 104.5", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('WXLO 104.5')),
+            Button(self.area.x + 50, 250, 75, 25, "Mix 104.1", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Mix 104.1')),
+            Button(self.area.x + 75, 300, 75, 25, "98.5 The Sports Hub", self.font, (95, 255, 177), (95, 255, 177), transparent=True, 
+                   action=self.create_action('98.5 The Sports Hub')),
+            
         ]
 
         self.waves = AudioWaves(screen, area)
@@ -34,11 +43,11 @@ class RadioView():
 
     def draw_background(self):
         self.background_image.set_alpha(128)
-        self.screen.blit(self.background_image, (self.area.right - (self.area.right * .35), self.area.top + (self.area.top * .35)))
-        self.draw_buttons()
+        center_x = self.area.left + (self.area.width - self.background_image.get_width()) // 2
+        center_y = self.area.top + (self.area.height - self.background_image.get_height()) // 2
 
-        # if self.current_station != None:
-        #     self.play_stream(self.current_station)
+        self.screen.blit(self.background_image, (center_x, center_y))
+        self.draw_buttons()
     
 
     def draw_buttons(self):
@@ -104,11 +113,10 @@ class RadioView():
                 button.is_active = (button.text == button_name)
             print(f"{button_name} button clicked!")
 
-            if button_name == "Kiss 108":
-                self.set_current_station(self.radio_stations[0])
-            if button_name == "Magic 106.7":
-                self.set_current_station(self.radio_stations[1])
-
+            for station in self.radio_stations:
+                if button_name == station['name']:
+                    self.set_current_station(station)
+                    break
         return action
 
 
