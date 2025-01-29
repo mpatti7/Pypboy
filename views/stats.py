@@ -76,7 +76,7 @@ class SpecialView():
         self.special_logo = pygame.image.load("assets/images/special_logo.png")
         self.special_logo = pygame.transform.scale(self.special_logo, (SCREEN_WIDTH , SCREEN_HEIGHT * .5))
         self.stats_area = pygame.Rect(self.area.left, 160, self.area.width, self.area.height - 125)
-        self.strength_sprite = pygame.image.load("assets/sprite_sheets/strength_sprite_sheet.png").convert_alpha()
+        self.strength_sprite = pygame.image.load("assets/sprite_sheets/strength_sprite_sheet_no_bg.png").convert_alpha()
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
 
@@ -174,10 +174,18 @@ class SpecialView():
 
     def get_sprite_sheet_frames(self, num_frames, frame_width, frame_height):
         frames = []
+
+        scale_factor = min(self.stats_area.width / (num_frames * frame_width), self.stats_area.height / frame_height)
+        
+        scaled_frame_width = int(frame_width * scale_factor) 
+        scaled_frame_height = int(frame_height * scale_factor)
+
         for i in range(num_frames):
             frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
             frame = self.strength_sprite.subsurface(frame_rect).copy()
+            # frame = pygame.transform.scale(frame, (scaled_frame_width, scaled_frame_height))
             frames.append(frame)
+
         return frames
 
 
@@ -213,7 +221,7 @@ class SpecialView():
 
         frame_width = self.strength_sprite.get_width() // 14
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
-        sprite_y = y_offset + 150
+        sprite_y = y_offset + 50
         self.animate_sprite(self.screen, sprite_x, sprite_y, 14, frame_width, self.strength_sprite.get_height())
 
         pygame.display.flip()
