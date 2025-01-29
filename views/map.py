@@ -64,6 +64,7 @@ class MapView():
 
             if os.path.exists(cached_map):
                 self.map_image = pygame.image.load(cached_map)
+                print('Cached map used!')
                 return 'Cached map image used!'
 
             with open("assets/map_styles/fallout4_map_style.json", "r") as file:
@@ -106,7 +107,7 @@ class MapView():
                 print("Error fetching location:", data["message"])
                 return None, None
         except Exception as e:
-            print("Failed to fetch location:", e)
+            print(f"[ERROR] in map.py: Failed to fetch location:", e)
             return None, None
     
 

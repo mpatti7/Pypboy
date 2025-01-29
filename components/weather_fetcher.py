@@ -49,13 +49,13 @@ class WeatherFetcher():
     def fetch_current_location(self):
         # Fetch current latitude and longitude based on IP address.
         try:
-            response = requests.get("http://ip-api.com/json/")
+            response = requests.get("https://ipinfo.io/json")
             data = response.json()
-            if data["status"] == "success":
-                return data["lat"], data["lon"]
+            if 'loc' in data:
+                return data['loc'].split(',')
             else:
                 print("Error fetching location:", data["message"])
                 return None, None
         except Exception as e:
-            print("Failed to fetch location:", e)
+            print(f"[ERROR] in weather_fetcher.py: Failed to fetch location:", e)
             return None, None

@@ -5,6 +5,8 @@ import psutil
 import threading
 import time
 from components.weather_fetcher import WeatherFetcher
+from components.special_calculator import SpecialCalculator
+from datetime import datetime
 
 
 class StatsView():
@@ -80,6 +82,15 @@ class SpecialView():
         self.strength_sprite = pygame.image.load("assets/sprite_sheets/strength_sprite_sheet_no_bg.png").convert_alpha()
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
+        self.main_font_color = (95, 255, 177, 128)
+
+        self.strength_value = 5
+        self.perception_value = 5
+        self.endurance_value = 5
+        self.charisma_value = 5
+        self.intelligence_value = 5
+        self.agility_value = 5
+        self.luck_value = 5
 
         self.current_stat = None
         self.stats_thread = None 
@@ -179,10 +190,11 @@ class SpecialView():
                 self.total_memory = (psutil.virtual_memory().available // 1024) // 1024
                 self.memory_percent = psutil.virtual_memory().percent
             elif self.current_stat == 'Perception':
-                print('HERE')
-                # self.weather_fetcher.fetch_weather_data_async()
+                self.weather_fetcher.fetch_weather_data_async()
+                if self.weather_fetcher.weather_data != None:
+                    self.perception_value, factors_list = SpecialCalculator.calculate_perception(self.weather_fetcher)
             time.sleep(0.1)
-    
+        
 
     def get_sprite_sheet_frames(self, num_frames, frame_width, frame_height):
         frames = []
@@ -243,17 +255,31 @@ class SpecialView():
 
 
     def display_perception(self):
-        pass
-        # col1_x = self.stats_area.left + 50
-        # y_offset = self.stats_area.top + 10
+        if self.weather_fetcher.weather_data == None:
+            loading_text = self.font.render("Loading...", True, self.main_font_color)
+            text_width = loading_text.get_width()
+            text_height = loading_text.get_height()
 
-        # print(self.weather_fetcher.weather_data)
-        
-        # for i, (key, value) in enumerate(self.weather_fetcher.weather_data.items()):
-        #     weather_text = self.font.render(f"{key}: {value}", True, (95, 255, 177))
-        #     self.screen.blit(weather_text, (col1_x, y_offset + i * 25))
+            center_x = self.area.left + (self.area.width - text_width) // 2
+            center_y = self.area.top + (self.area.height - text_height) // 2
 
-        # pygame.display.flip()
+            self.screen.blit(loading_text, (center_x, center_y))
+        else:
+            diff = self.perception_value - 5
+            percep_text = self.font.render(f'Value: {str(self.perception_value)}({"-" if diff < 0 else "+"}){diff}', True, self.main_font_color)
+            col1_x = self.stats_area.left + 50
+            y_offset = self.stats_area.top + 10
+            center_x = self.area.left + (self.area.width - percep_text.get_width()) // 2
+            center_y = self.area.top + (self.area.height - percep_text.get_width()) // 2
+
+            self.screen.blit(percep_text, (center_x, center_y))
+
+            
+            # for i, (key, value) in enumerate(self.weather_fetcher.weather_data.items()):
+            #     weather_text = self.font.render(f"{key}: {value}", True, self.main_font_color)
+            #     self.screen.blit(weather_text, (col1_x, y_offset + i * 25))
+
+            pygame.display.flip()
 
 
     def display_endurance(self):

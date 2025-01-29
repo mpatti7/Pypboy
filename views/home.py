@@ -38,8 +38,8 @@ class HomeView():
     
 
     def set_active_view(self, view_class):
-        if view_class == WeatherView or StatsView:
-            self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("WEATHER_API_KEY"))
+        if view_class == WeatherView or view_class == StatsView:
+            self.active_view = view_class(self.screen, self.content_area, weather_api_key=os.getenv("WEATHER_API_KEY"))
         elif view_class == MapView:
             self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("GOOGLE_MAPS_API_KEY"))
         else:

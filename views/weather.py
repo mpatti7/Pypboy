@@ -8,10 +8,10 @@ from components.weather_fetcher import WeatherFetcher
 
 
 class WeatherView():
-    def __init__(self, screen, area, api_key):
+    def __init__(self, screen, area, weather_api_key):
         self.screen = screen
         self.area = area
-        self.api_key = api_key
+        self.api_key = weather_api_key
         # self.weather_data = None
         # self.weather_icon = None
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20) 
@@ -20,7 +20,7 @@ class WeatherView():
         self.background_image = pygame.transform.scale(self.background_image, (self.area.width * .18, self.area.height * .25))
         # self.is_fetching = True
         # self.fetch_weather_data_async()
-        self.weather_fetcher = WeatherFetcher(api_key)
+        self.weather_fetcher = WeatherFetcher(weather_api_key)
         self.weather_fetcher.fetch_weather_data_async()
 
         self.weather_images = {
@@ -107,7 +107,7 @@ class WeatherView():
     #         lat, lon = self.fetch_current_location()
     #         response = requests.get(
     #             f"http://api.weatherapi.com/v1/current.json",
-    #             params={"key": self.api_key, "q": f"{lat},{lon}"}
+    #             params={"key": self.weather_api_key, "q": f"{lat},{lon}"}
     #         )
     #         response.raise_for_status()
     #         self.weather_data = response.json()
