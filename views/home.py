@@ -34,11 +34,11 @@ class HomeView():
         footer_height = 40
         self.content_area = pygame.Rect(0, header_height, screen.get_width(), screen.get_height() - header_height - footer_height)
 
-        self.active_view = StatsView(self.screen, self.content_area)
+        self.active_view = StatsView(self.screen, self.content_area, weather_api_key=os.getenv("WEATHER_API_KEY"))
     
 
     def set_active_view(self, view_class):
-        if view_class == WeatherView:
+        if view_class == WeatherView or StatsView:
             self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("WEATHER_API_KEY"))
         elif view_class == MapView:
             self.active_view = view_class(self.screen, self.content_area, api_key=os.getenv("GOOGLE_MAPS_API_KEY"))

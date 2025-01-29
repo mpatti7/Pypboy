@@ -4,10 +4,11 @@ from components.button import Button
 import psutil
 import threading
 import time
+from components.weather_fetcher import WeatherFetcher
 
 
 class StatsView():
-    def __init__(self, screen, area):
+    def __init__(self, screen, area, weather_api_key):
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
@@ -16,7 +17,7 @@ class StatsView():
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .75, SCREEN_HEIGHT * .75))
 
         self.current_view = 'main'
-        self.special_view = SpecialView(self.screen, self.area)
+        self.special_view = SpecialView(self.screen, self.area, weather_api_key)
         self.perks_view = PerksView(self.screen, self.area)
 
         self.buttons = [
@@ -69,7 +70,7 @@ class StatsView():
 
 
 class SpecialView():
-    def __init__(self, screen, area):
+    def __init__(self, screen, area, weather_api_key):
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
@@ -88,6 +89,11 @@ class SpecialView():
         self.core_usages = []
         self.freq = None
         self.cores = 0
+        self.used_memory = 0
+        self.total_memory = 0
+        self.memory_percent= 0
+
+        self.weather_fetcher = WeatherFetcher(weather_api_key)
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -169,6 +175,12 @@ class SpecialView():
                 self.core_usages = psutil.cpu_percent(interval=None, percpu=True)
                 self.freq = psutil.cpu_freq()
                 self.cores = psutil.cpu_count(logical=True)
+                self.used_memory = (psutil.virtual_memory().used // 1024) // 1024
+                self.total_memory = (psutil.virtual_memory().available // 1024) // 1024
+                self.memory_percent = psutil.virtual_memory().percent
+            elif self.current_stat == 'Perception':
+                print('HERE')
+                # self.weather_fetcher.fetch_weather_data_async()
             time.sleep(0.1)
     
 
@@ -212,8 +224,11 @@ class SpecialView():
             freq_text = self.font.render(f"Frequency: {self.freq.current:.1f} MHz", True, (95, 255, 177))
             self.screen.blit(freq_text, (col1_x, y_offset + 25))
         
+        memory_text = self.font.render(f"Memory: {self.used_memory} MB/{self.total_memory} MB, {self.memory_percent}%", True, (95, 255, 177)) 
+        self.screen.blit(memory_text, (col1_x, y_offset + 50))
+        
         cores_text = self.font.render(f"Logical Cores: {self.cores}", True, (95, 255, 177))
-        self.screen.blit(cores_text, (col1_x, y_offset + 50))
+        self.screen.blit(cores_text, (col1_x, y_offset + 75))
 
         for i, core_usage in enumerate(self.core_usages):
             core_text = self.font.render(f"Core {i + 1}: {core_usage:.1f}%", True, (95, 255, 177))
@@ -228,7 +243,17 @@ class SpecialView():
 
 
     def display_perception(self):
-        print('Displaying perception')
+        pass
+        # col1_x = self.stats_area.left + 50
+        # y_offset = self.stats_area.top + 10
+
+        # print(self.weather_fetcher.weather_data)
+        
+        # for i, (key, value) in enumerate(self.weather_fetcher.weather_data.items()):
+        #     weather_text = self.font.render(f"{key}: {value}", True, (95, 255, 177))
+        #     self.screen.blit(weather_text, (col1_x, y_offset + i * 25))
+
+        # pygame.display.flip()
 
 
     def display_endurance(self):
