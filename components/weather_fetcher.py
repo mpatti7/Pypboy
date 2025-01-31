@@ -54,7 +54,7 @@ class WeatherFetcher():
             if 'loc' in data:
                 return data['loc'].split(',')
             else:
-                print("Error fetching location:", data["message"])
+                print("Error fetching location: ", data)
                 return None, None
         except Exception as e:
             print(f"[ERROR] in weather_fetcher.py: Failed to fetch location:", e)

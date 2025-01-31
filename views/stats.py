@@ -6,7 +6,10 @@ import threading
 import time
 from components.weather_fetcher import WeatherFetcher
 from components.special_calculator import SpecialCalculator
+from components.charisma_monitor import CharismaMonitor
 from datetime import datetime
+import platform
+import subprocess
 
 
 class StatsView():
@@ -80,6 +83,8 @@ class SpecialView():
         self.special_logo = pygame.transform.scale(self.special_logo, (SCREEN_WIDTH , SCREEN_HEIGHT * .5))
         self.stats_area = pygame.Rect(self.area.left, 160, self.area.width, self.area.height - 125)
         self.strength_sprite = pygame.image.load("assets/sprite_sheets/strength_sprite_sheet_no_bg.png").convert_alpha()
+        self.perception_sprite = pygame.image.load("assets/sprite_sheets/perception_sprite_sheet_no_bg.png").convert_alpha()
+        self.endurance_sprite = pygame.image.load("assets/sprite_sheets/endurance_sprite_sheet_no_bg.png").convert_alpha()
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
         self.main_font_color = (95, 255, 177, 128)
@@ -104,7 +109,17 @@ class SpecialView():
         self.total_memory = 0
         self.memory_percent= 0
 
+        self.uptime_hours = 0
+        self.cpu_temp = 50
+
+        self.base_ip = "192.168.3"  # Replace with your subnet if different
+        self.gateway_ip = "192.168.50.1"  # Typical gateway IP
+        self.devices = ''
+        self.device_count = 0
+        self.gateway_status = ''
+
         self.weather_fetcher = WeatherFetcher(weather_api_key)
+        self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip)
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -189,14 +204,34 @@ class SpecialView():
                 self.used_memory = (psutil.virtual_memory().used // 1024) // 1024
                 self.total_memory = (psutil.virtual_memory().available // 1024) // 1024
                 self.memory_percent = psutil.virtual_memory().percent
+                self.strength_value = SpecialCalculator.calculate_strength(self.cpu_usage, self.freq.current, self.used_memory, self.cores, self.core_usages)
+
             elif self.current_stat == 'Perception':
                 self.weather_fetcher.fetch_weather_data_async()
                 if self.weather_fetcher.weather_data != None:
                     self.perception_value, factors_list = SpecialCalculator.calculate_perception(self.weather_fetcher)
+
+            elif self.current_stat == 'Endurance':
+                uptime_seconds = time.time() - psutil.boot_time()
+                self.uptime_hours = uptime_seconds // 3600
+
+                try:
+                    temp_sensor = psutil.sensors_temperatures().get("cpu-thermal", [])
+                    self.cpu_temp = temp_sensor[0].current if temp_sensor else 50.0  # Assume 50°C if unavailable
+                except Exception as e:
+                    print(f'[Error]: in update_stats, endurance: {e}')
+                    self.cpu_temp = 50.0
+                
+                self.endurance_value = SpecialCalculator.calculate_endurance(self.uptime_hours, self.cpu_temp)
+            
+            elif self.current_stat == 'Charisma':
+                self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
+                self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
+
             time.sleep(0.1)
         
 
-    def get_sprite_sheet_frames(self, num_frames, frame_width, frame_height):
+    def get_sprite_sheet_frames(self, sprite_sheet, num_frames, frame_width, frame_height):
         frames = []
 
         scale_factor = min(self.stats_area.width / (num_frames * frame_width), self.stats_area.height / frame_height)
@@ -206,15 +241,15 @@ class SpecialView():
 
         for i in range(num_frames):
             frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
-            frame = self.strength_sprite.subsurface(frame_rect).copy()
+            frame = sprite_sheet.subsurface(frame_rect).copy()
             # frame = pygame.transform.scale(frame, (scaled_frame_width, scaled_frame_height))
             frames.append(frame)
 
         return frames
 
 
-    def animate_sprite(self, screen, x, y, num_frames, frame_width, frame_height):
-        frames = self.get_sprite_sheet_frames(num_frames, frame_width, frame_height)
+    def animate_sprite(self, sprite_sheet, screen, x, y, num_frames, frame_width, frame_height):
+        frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames, frame_width, frame_height)
         frame_delay = 150
         now = pygame.time.get_ticks()
         if now - self.last_update > frame_delay:
@@ -225,6 +260,12 @@ class SpecialView():
     
 
     def display_strength(self):
+        diff = self.strength_value - 5
+        strength_text = self.font.render(f'Value: {str(self.strength_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+        center_x = self.area.left + (self.area.width - strength_text.get_width()) // 2
+        center_y = self.area.top + (self.area.height - strength_text.get_width()) // 2
+        self.screen.blit(strength_text, (center_x, center_y))
+
         col1_x = self.stats_area.left + 50
         col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
         y_offset = self.stats_area.top + 10
@@ -249,7 +290,7 @@ class SpecialView():
         frame_width = self.strength_sprite.get_width() // 14
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
         sprite_y = y_offset + 50
-        self.animate_sprite(self.screen, sprite_x, sprite_y, 14, frame_width, self.strength_sprite.get_height())
+        self.animate_sprite(self.strength_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.strength_sprite.get_height())
 
         pygame.display.flip()
 
@@ -266,7 +307,7 @@ class SpecialView():
             self.screen.blit(loading_text, (center_x, center_y))
         else:
             diff = self.perception_value - 5
-            percep_text = self.font.render(f'Value: {str(self.perception_value)}({"-" if diff < 0 else "+"}){diff}', True, self.main_font_color)
+            percep_text = self.font.render(f'Value: {str(self.perception_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
             col1_x = self.stats_area.left + 50
             y_offset = self.stats_area.top + 10
             center_x = self.area.left + (self.area.width - percep_text.get_width()) // 2
@@ -274,20 +315,75 @@ class SpecialView():
 
             self.screen.blit(percep_text, (center_x, center_y))
 
-            
-            # for i, (key, value) in enumerate(self.weather_fetcher.weather_data.items()):
-            #     weather_text = self.font.render(f"{key}: {value}", True, self.main_font_color)
-            #     self.screen.blit(weather_text, (col1_x, y_offset + i * 25))
+            temp_f = self.weather_fetcher.weather_data["current"]["temp_f"]
+            cloud_cover = self.weather_fetcher.weather_data["current"]["cloud"]
+            wind_mph = self.weather_fetcher.weather_data['current']['wind_mph']
+            localtime_epoch = datetime.fromtimestamp(self.weather_fetcher.weather_data['location']['localtime_epoch'])
+
+            temp_text = self.font.render(f"Temp: {temp_f}°F", True, self.main_font_color)
+            cloud_cover_text = self.font.render(f'Cloud Cover: {cloud_cover}', True, self.main_font_color)
+            wind_mph_text = self.font.render(f'Wind: {str(wind_mph)} mph', True, self.main_font_color)
+            localtime_text = self.font.render(f'Local Time: {str(localtime_epoch)}', True, self.main_font_color)
+
+            self.screen.blit(temp_text, (col1_x, y_offset))
+            self.screen.blit(cloud_cover_text, (col1_x, y_offset + 25))  
+            self.screen.blit(wind_mph_text, (col1_x, y_offset + 50))  
+            self.screen.blit(localtime_text, (col1_x, y_offset + 75))  
+
+            frame_width = self.perception_sprite.get_width() // 14
+            sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
+            sprite_y = y_offset + 50
+            self.animate_sprite(self.perception_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.perception_sprite.get_height())
 
             pygame.display.flip()
 
 
     def display_endurance(self):
-        print('Displaying endurance')
+        col1_x = self.stats_area.left + 50
+        col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
+        y_offset = self.stats_area.top + 10
+
+        uptime_text = self.font.render(f"Uptime: {int(self.uptime_hours)} hours", True, self.main_font_color)
+        self.screen.blit(uptime_text, (col1_x, y_offset))
+
+        temp_text = self.font.render(f"CPU Temp: {self.cpu_temp:.1f}°C", True, self.main_font_color)
+        self.screen.blit(temp_text, (col1_x, y_offset + 30))
+
+        endurance_text = self.font.render(f"Endurance Value: {self.endurance_value}", True, self.main_font_color)
+        center_x = self.area.left + (self.area.width - endurance_text.get_width()) // 2
+        center_y = self.area.top + (self.area.height - endurance_text.get_width()) // 2
+
+        self.screen.blit(endurance_text, (center_x, y_offset))
+
+        frame_width = self.endurance_sprite.get_width() // 14
+        sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
+        sprite_y = y_offset + 50
+        self.animate_sprite(self.endurance_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.endurance_sprite.get_height())
+
+        pygame.display.flip()
 
 
     def display_charisma(self):
-        print('Displaying charisma')
+        # print(f'devices: {self.devices}')
+        # print(f'devices count: {self.device_count}')
+        # print(f'gateway status: {self.gateway_status}')
+
+        col1_x = self.stats_area.left + 50
+        col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
+        y_offset = self.stats_area.top + 10
+
+        device_count_text = self.font.render(f"# of Devices: {int(self.device_count)}", True, self.main_font_color)
+        self.screen.blit(device_count_text, (col1_x, y_offset))
+
+        pygame.display.flip()
+
+        # print(f"Charisma: {charisma_value}")
+        # print(f"Active Devices: {len(active_devices)}")
+        # for ip, latency in active_devices.items():
+        #     status = "Great" if latency <= 50 else "High" if latency <= 100 else "Poor"
+        #     print(f"{ip}: {latency} ms ({status})")
+        # print("Gateway Status: Reachable" if self.ping_device(self.gateway_ip) else "Gateway Status: Unreachable")
+
 
 
     def display_intelligence(self):

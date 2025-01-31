@@ -22,7 +22,7 @@ class RadioView():
             {'name': 'Magic 106.7', 'url': 'https://live.amperwave.net/direct/audacy-wmjxfmaac-imc'},
             {'name': 'Big 103.3', 'url': 'https://live.amperwave.net/direct/audacy-wbgbfmaac-imc'},
             {'name': 'WXLO 104.5', 'url': 'https://playerservices.streamtheworld.com/api/livestream-redirect/WXLOFMAAC.aac'},
-            {'name': 'Mix 104.1', 'url': 'https://eus.rubiconproject.com/usync.html?p=7562&endpoint=us-west&auid=f8k:57e0ad9f43e2ae1b816bd54f752cbdd7'},
+            {'name': 'Mix 104.1', 'url': 'https://live.amperwave.net/direct/audacy-wwbxfmaac-imc'},
             {'name': '98.5 The Sports Hub', 'url': 'https://playerservices.streamtheworld.com/api/livestream-redirect/WBZFMDIALUPAAC.aac'}
         ]
         self.current_station = None
