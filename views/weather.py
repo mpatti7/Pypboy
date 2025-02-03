@@ -28,7 +28,8 @@ class WeatherView():
             'Partly cloudy': '',
             'Rainy': 'assets/images/vaultboy_umbrella.png',
             'Clear': '',
-            'Light rain': ''
+            'Light rain': '',
+            'Overcast': ''
         }
     
 

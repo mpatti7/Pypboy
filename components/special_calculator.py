@@ -101,7 +101,7 @@ class SpecialCalculator():
 
 
     @classmethod
-    def calculate_charisma(devices, device_count, gateway_status):
+    def calculate_charisma(cls, devices, device_count, gateway_status):
         charisma_value = 5
         charisma_value += min(device_count // 2, 5)
         high_latency_count = sum(1 for latency in devices.values() if latency > 100)
@@ -112,7 +112,7 @@ class SpecialCalculator():
         if gateway_status:
             charisma_value += 1
 
-        return max(0, min(charisma_value, 10))
+        return max(1, min(charisma_value, 10))
 
 
 

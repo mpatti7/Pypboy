@@ -13,7 +13,7 @@ import subprocess
 
 
 class StatsView():
-    def __init__(self, screen, area, weather_api_key):
+    def __init__(self, screen, area, weather_api_key, stocks_api_key):
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
@@ -22,7 +22,7 @@ class StatsView():
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .75, SCREEN_HEIGHT * .75))
 
         self.current_view = 'main'
-        self.special_view = SpecialView(self.screen, self.area, weather_api_key)
+        self.special_view = SpecialView(self.screen, self.area, weather_api_key, stocks_api_key)
         self.perks_view = PerksView(self.screen, self.area)
 
         self.buttons = [
@@ -75,7 +75,9 @@ class StatsView():
 
 
 class SpecialView():
-    def __init__(self, screen, area, weather_api_key):
+    CHARISMA_REFRESH_INTERVAL = 180
+
+    def __init__(self, screen, area, weather_api_key, stocks_api_key):
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
@@ -85,6 +87,7 @@ class SpecialView():
         self.strength_sprite = pygame.image.load("assets/sprite_sheets/strength_sprite_sheet_no_bg.png").convert_alpha()
         self.perception_sprite = pygame.image.load("assets/sprite_sheets/perception_sprite_sheet_no_bg.png").convert_alpha()
         self.endurance_sprite = pygame.image.load("assets/sprite_sheets/endurance_sprite_sheet_no_bg.png").convert_alpha()
+        self.charisma_sprite = pygame.image.load("assets/sprite_sheets/charisma_sprite_sheet_no_bg.png").convert_alpha()
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
         self.main_font_color = (95, 255, 177, 128)
@@ -99,6 +102,7 @@ class SpecialView():
 
         self.current_stat = None
         self.stats_thread = None 
+        self.charisma_thread = None
         self.running = False  # Thread loop condition
 
         self.cpu_usage = 0
@@ -112,14 +116,15 @@ class SpecialView():
         self.uptime_hours = 0
         self.cpu_temp = 50
 
-        self.base_ip = "192.168.3"  # Replace with your subnet if different
+        self.base_ip = "192.168.50"  # Replace with your subnet if different
         self.gateway_ip = "192.168.50.1"  # Typical gateway IP
-        self.devices = ''
+        self.devices = {}
         self.device_count = 0
-        self.gateway_status = ''
+        self.gateway_status = None
 
         self.weather_fetcher = WeatherFetcher(weather_api_key)
-        self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip)
+        self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip, self)
+        self.stocks_api_key = stocks_api_key
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -195,6 +200,8 @@ class SpecialView():
     
 
     def update_stats(self):
+        self.start_charisma_monitor()
+
         while self.running:
             if self.current_stat == "Strength":
                 self.cpu_usage = psutil.cpu_percent(interval=0.5, percpu=False)
@@ -224,11 +231,36 @@ class SpecialView():
                 
                 self.endurance_value = SpecialCalculator.calculate_endurance(self.uptime_hours, self.cpu_temp)
             
-            elif self.current_stat == 'Charisma':
-                self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
-                self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
+            elif self.current_stat == 'Intelligence':
+                # https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=YOUR_API_KEY
+                pass
+
+            
+            # elif self.current_stat == 'Charisma':
+            #     self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
+            #     self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
 
             time.sleep(0.1)
+    
+
+    # Charisma calculation is slow due to network pinging, so it is in another thread that runs every few minutes outside the charisma view
+    # to ensure the data will be there to display and not block the rest of the app
+    def start_charisma_monitor(self):
+        def charisma_background_task():
+            while self.running:
+                self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
+                self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
+                time.sleep(self.CHARISMA_REFRESH_INTERVAL) #Run this code every few minutes
+
+        self.charisma_thread = threading.Thread(target=charisma_background_task, daemon=True)
+        self.charisma_thread.start()
+    
+
+    def update_frontend_with_charisma_data(self, devices, device_count, gateway_status):
+        self.devices = devices
+        self.device_count  = device_count
+        self.gateway_status = gateway_status
+        self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
         
 
     def get_sprite_sheet_frames(self, sprite_sheet, num_frames, frame_width, frame_height):
@@ -261,31 +293,31 @@ class SpecialView():
 
     def display_strength(self):
         diff = self.strength_value - 5
-        strength_text = self.font.render(f'Value: {str(self.strength_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+        strength_text = self.font.render(f'Strength Value: {str(self.strength_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
         center_x = self.area.left + (self.area.width - strength_text.get_width()) // 2
         center_y = self.area.top + (self.area.height - strength_text.get_width()) // 2
-        self.screen.blit(strength_text, (center_x, center_y))
+        y_offset = self.stats_area.top + 10
+        self.screen.blit(strength_text, (center_x, y_offset))
 
         col1_x = self.stats_area.left + 50
         col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
-        y_offset = self.stats_area.top + 10
 
         cpu_text = self.font.render(f"CPU Usage: {self.cpu_usage:.1f}%", True, (95, 255, 177))
-        self.screen.blit(cpu_text, (col1_x, y_offset))
+        self.screen.blit(cpu_text, (col1_x, y_offset + 25))
         
         if self.freq:
             freq_text = self.font.render(f"Frequency: {self.freq.current:.1f} MHz", True, (95, 255, 177))
-            self.screen.blit(freq_text, (col1_x, y_offset + 25))
+            self.screen.blit(freq_text, (col1_x, y_offset + 50))
         
         memory_text = self.font.render(f"Memory: {self.used_memory} MB/{self.total_memory} MB, {self.memory_percent}%", True, (95, 255, 177)) 
-        self.screen.blit(memory_text, (col1_x, y_offset + 50))
+        self.screen.blit(memory_text, (col1_x, y_offset + 75))
         
         cores_text = self.font.render(f"Logical Cores: {self.cores}", True, (95, 255, 177))
-        self.screen.blit(cores_text, (col1_x, y_offset + 75))
+        self.screen.blit(cores_text, (col1_x, y_offset + 100))
 
         for i, core_usage in enumerate(self.core_usages):
             core_text = self.font.render(f"Core {i + 1}: {core_usage:.1f}%", True, (95, 255, 177))
-            self.screen.blit(core_text, (col2_x, y_offset + i * 30))
+            self.screen.blit(core_text, (col2_x, y_offset + 25 + i * 30))
 
         frame_width = self.strength_sprite.get_width() // 14
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
@@ -307,13 +339,13 @@ class SpecialView():
             self.screen.blit(loading_text, (center_x, center_y))
         else:
             diff = self.perception_value - 5
-            percep_text = self.font.render(f'Value: {str(self.perception_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+            percep_text = self.font.render(f'Perception Value: {str(self.perception_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
             col1_x = self.stats_area.left + 50
             y_offset = self.stats_area.top + 10
             center_x = self.area.left + (self.area.width - percep_text.get_width()) // 2
             center_y = self.area.top + (self.area.height - percep_text.get_width()) // 2
 
-            self.screen.blit(percep_text, (center_x, center_y))
+            self.screen.blit(percep_text, (center_x, y_offset))
 
             temp_f = self.weather_fetcher.weather_data["current"]["temp_f"]
             cloud_cover = self.weather_fetcher.weather_data["current"]["cloud"]
@@ -325,10 +357,10 @@ class SpecialView():
             wind_mph_text = self.font.render(f'Wind: {str(wind_mph)} mph', True, self.main_font_color)
             localtime_text = self.font.render(f'Local Time: {str(localtime_epoch)}', True, self.main_font_color)
 
-            self.screen.blit(temp_text, (col1_x, y_offset))
-            self.screen.blit(cloud_cover_text, (col1_x, y_offset + 25))  
-            self.screen.blit(wind_mph_text, (col1_x, y_offset + 50))  
-            self.screen.blit(localtime_text, (col1_x, y_offset + 75))  
+            self.screen.blit(temp_text, (col1_x, y_offset + 25))
+            self.screen.blit(cloud_cover_text, (col1_x, y_offset + 50))  
+            self.screen.blit(wind_mph_text, (col1_x, y_offset + 75))  
+            self.screen.blit(localtime_text, (col1_x, y_offset + 100))  
 
             frame_width = self.perception_sprite.get_width() // 14
             sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
@@ -344,15 +376,15 @@ class SpecialView():
         y_offset = self.stats_area.top + 10
 
         uptime_text = self.font.render(f"Uptime: {int(self.uptime_hours)} hours", True, self.main_font_color)
-        self.screen.blit(uptime_text, (col1_x, y_offset))
+        self.screen.blit(uptime_text, (col1_x, y_offset + 30))
 
         temp_text = self.font.render(f"CPU Temp: {self.cpu_temp:.1f}°C", True, self.main_font_color)
-        self.screen.blit(temp_text, (col1_x, y_offset + 30))
+        self.screen.blit(temp_text, (col1_x, y_offset + 60))
 
-        endurance_text = self.font.render(f"Endurance Value: {self.endurance_value}", True, self.main_font_color)
+        diff = self.endurance_value - 5
+        endurance_text = self.font.render(f"Endurance Value: {str(int(self.endurance_value))}({'+' if diff >= 0 else ''}{int(diff)})", True, self.main_font_color)
         center_x = self.area.left + (self.area.width - endurance_text.get_width()) // 2
         center_y = self.area.top + (self.area.height - endurance_text.get_width()) // 2
-
         self.screen.blit(endurance_text, (center_x, y_offset))
 
         frame_width = self.endurance_sprite.get_width() // 14
@@ -364,26 +396,39 @@ class SpecialView():
 
 
     def display_charisma(self):
-        # print(f'devices: {self.devices}')
-        # print(f'devices count: {self.device_count}')
-        # print(f'gateway status: {self.gateway_status}')
-
         col1_x = self.stats_area.left + 50
         col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
         y_offset = self.stats_area.top + 10
 
         device_count_text = self.font.render(f"# of Devices: {int(self.device_count)}", True, self.main_font_color)
-        self.screen.blit(device_count_text, (col1_x, y_offset))
+        self.screen.blit(device_count_text, (col1_x, y_offset + 25))
+        gateway_status_text = self.font.render(f"Gateway Status: {self.gateway_status}", True, self.main_font_color)
+        self.screen.blit(gateway_status_text, (col1_x, y_offset + 50))
+
+        devices_text = self.font.render(f"Devices: ", True, self.main_font_color)
+        self.screen.blit(devices_text, (col1_x, y_offset + 75))
+        
+        ip_y_offset = y_offset + 100
+        for ip, value in self.devices.items():
+            text = self.font.render(f'{ip} - {value}', True, self.main_font_color)
+            self.screen.blit(text, (col1_x+15, ip_y_offset))
+            ip_y_offset += 30
+        
+        diff = self.charisma_value - 5
+        charisma_text = self.font.render(f"Charisma Value: {str(self.charisma_value)}({'+' if diff >= 0 else ''}{diff})", True, self.main_font_color)
+        center_x = self.area.left + (self.area.width - charisma_text.get_width()) // 2
+        center_y = self.area.top + (self.area.height - charisma_text.get_width()) // 2
+        self.screen.blit(charisma_text, (center_x, y_offset))
+
+        
+        frame_width = self.charisma_sprite.get_width() // 14
+        sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
+        sprite_y = y_offset + 50
+
+        self.animate_sprite(self.charisma_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.charisma_sprite.get_height())
+        
 
         pygame.display.flip()
-
-        # print(f"Charisma: {charisma_value}")
-        # print(f"Active Devices: {len(active_devices)}")
-        # for ip, latency in active_devices.items():
-        #     status = "Great" if latency <= 50 else "High" if latency <= 100 else "Poor"
-        #     print(f"{ip}: {latency} ms ({status})")
-        # print("Gateway Status: Reachable" if self.ping_device(self.gateway_ip) else "Gateway Status: Unreachable")
-
 
 
     def display_intelligence(self):
