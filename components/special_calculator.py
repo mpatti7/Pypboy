@@ -113,6 +113,34 @@ class SpecialCalculator():
             charisma_value += 1
 
         return max(1, min(charisma_value, 10))
+    
+
+    @classmethod
+    def calculate_intelligence(self, stocks_data):
+        base_intelligence = 5
+        total_impact = 0
+
+        # Define weight factors for each company (sum to 1 for balanced influence)
+        weight_factors = {
+            "Apple": 0.25,
+            "Nvidia": 0.25,
+            "Microsoft": 0.2,
+            "Google": 0.15,
+            "Amazon": 0.15
+        }
+
+        # for stock_data in stocks_data:
+        for company, data in stocks_data.items():
+            percent_change = data["percent_change"]
+            weight = weight_factors.get(company, 0)
+
+            # Intelligence change weighted by percent change and company weight
+            total_impact += percent_change * weight / 100
+
+        # Adjust intelligence value, ensuring it's within bounds [1, 10]
+        intelligence = max(1, min(base_intelligence + total_impact, 10))
+
+        return int(intelligence)
 
 
 

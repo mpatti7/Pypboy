@@ -7,6 +7,7 @@ import time
 from components.weather_fetcher import WeatherFetcher
 from components.special_calculator import SpecialCalculator
 from components.charisma_monitor import CharismaMonitor
+from components.stocks_fetcher import StocksFetcher
 from datetime import datetime
 import platform
 import subprocess
@@ -124,7 +125,7 @@ class SpecialView():
 
         self.weather_fetcher = WeatherFetcher(weather_api_key)
         self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip, self)
-        self.stocks_api_key = stocks_api_key
+        self.stocks_fetcher = StocksFetcher(stocks_api_key)
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -232,9 +233,10 @@ class SpecialView():
                 self.endurance_value = SpecialCalculator.calculate_endurance(self.uptime_hours, self.cpu_temp)
             
             elif self.current_stat == 'Intelligence':
-                # https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=YOUR_API_KEY
-                pass
-
+                if self.stocks_fetcher.stocks_data != None:
+                    self.intelligence_value = SpecialCalculator.calculate_intelligence(self.stocks_fetcher.stocks_data)
+                # else:
+                #     self.stocks_fetcher.fetch_stocks_data_async()
             
             # elif self.current_stat == 'Charisma':
             #     self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
@@ -432,7 +434,38 @@ class SpecialView():
 
 
     def display_intelligence(self):
-        print('Displaying intelligence')
+        if self.stocks_fetcher.stocks_data == None:
+            loading_text = self.font.render("Loading...", True, self.main_font_color)
+            text_width = loading_text.get_width()
+            text_height = loading_text.get_height()
+
+            center_x = self.area.left + (self.area.width - text_width) // 2
+            center_y = self.area.top + (self.area.height - text_height) // 2
+
+            self.screen.blit(loading_text, (center_x, center_y))
+        else:
+            diff = self.intelligence_value - 5
+            intel_text = self.font.render(f'Intelligence Value: {str(self.intelligence_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+            col1_x = self.stats_area.left + 50
+            col2_x = self.stats_area.left + (self.stats_area.width * 3 // 4)
+            y_offset = self.stats_area.top + 10
+            center_x = self.area.left + (self.area.width - intel_text.get_width()) // 2
+            center_y = self.area.top + (self.area.height - intel_text.get_width()) // 2
+
+            self.screen.blit(intel_text, (center_x, y_offset))
+
+            devices_text = self.font.render(f"Stock Prices: ", True, self.main_font_color)
+            self.screen.blit(devices_text, (col1_x, y_offset + 50))
+            
+            price_y_offset = y_offset + 100
+            for company in self.stocks_fetcher.stocks_data.keys():
+                diff = float(self.stocks_fetcher.stocks_data[company]['closing_price']) - float(self.stocks_fetcher.stocks_data[company]['opening_price'])
+                text = self.font.render(f"{company}: ${self.stocks_fetcher.stocks_data[company]['closing_price']}", True, self.main_font_color)
+                percent_text = self.font.render(f"{self.stocks_fetcher.stocks_data[company]['percent_change']}%", True, self.main_font_color)
+                self.screen.blit(text, (col1_x+15, price_y_offset))
+                self.screen.blit(percent_text, (col2_x+15, price_y_offset))
+
+                price_y_offset += 30
 
 
     def display_agility(self):
