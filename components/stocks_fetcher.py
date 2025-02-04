@@ -26,25 +26,20 @@ class StocksFetcher():
 
     def fetch_stocks_data(self):
         self.stocks_data = {}
-        count = 0
         for company, symbol in self.companines.items():
             try:
-                response = requests.get(
-                    f"https://api.twelvedata.com/time_series",
-                    params={
-                        "symbol": symbol,
-                        "interval": "1day",
-                        "apikey": self.api_key,
-                        "outputsize": 1
-                    }
-                )
+                url = "https://api.twelvedata.com/time_series"
+                params = {
+                    "apikey": self.api_key,
+                    "symbol": symbol,
+                    "interval": "1day",
+                    "outputsize": "1"
+                }
+                response = requests.get(url, params=params)
                 response.raise_for_status()
                 data = self.extract_stocks_data(response.json(), company)
                 if data:
                     self.stocks_data[company] = data
-                count += 1
-                print(count)
-                print(self.stocks_data)
             except Exception as e:
                 print(f"Error fetching stock data for {company}: {e}")
             finally:

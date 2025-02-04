@@ -89,6 +89,8 @@ class SpecialView():
         self.perception_sprite = pygame.image.load("assets/sprite_sheets/perception_sprite_sheet_no_bg.png").convert_alpha()
         self.endurance_sprite = pygame.image.load("assets/sprite_sheets/endurance_sprite_sheet_no_bg.png").convert_alpha()
         self.charisma_sprite = pygame.image.load("assets/sprite_sheets/charisma_sprite_sheet_no_bg.png").convert_alpha()
+        self.intelligence_sprite = pygame.image.load("assets/sprite_sheets/intelligence_sprite_sheet_no_bg.png").convert_alpha()
+
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
         self.main_font_color = (95, 255, 177, 128)
@@ -235,8 +237,8 @@ class SpecialView():
             elif self.current_stat == 'Intelligence':
                 if self.stocks_fetcher.stocks_data != None:
                     self.intelligence_value = SpecialCalculator.calculate_intelligence(self.stocks_fetcher.stocks_data)
-                # else:
-                #     self.stocks_fetcher.fetch_stocks_data_async()
+                else:
+                    self.stocks_fetcher.fetch_stocks_data_async()
             
             # elif self.current_stat == 'Charisma':
             #     self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
@@ -429,7 +431,6 @@ class SpecialView():
 
         self.animate_sprite(self.charisma_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.charisma_sprite.get_height())
         
-
         pygame.display.flip()
 
 
@@ -464,8 +465,15 @@ class SpecialView():
                 percent_text = self.font.render(f"{self.stocks_fetcher.stocks_data[company]['percent_change']}%", True, self.main_font_color)
                 self.screen.blit(text, (col1_x+15, price_y_offset))
                 self.screen.blit(percent_text, (col2_x+15, price_y_offset))
-
                 price_y_offset += 30
+            
+            frame_width = self.intelligence_sprite.get_width() // 14
+            sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
+            sprite_y = y_offset + 50
+
+            self.animate_sprite(self.intelligence_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.intelligence_sprite.get_height())
+            
+            pygame.display.flip()
 
 
     def display_agility(self):
