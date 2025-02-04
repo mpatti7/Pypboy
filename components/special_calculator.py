@@ -141,6 +141,21 @@ class SpecialCalculator():
         intelligence = max(1, min(base_intelligence + total_impact, 10))
 
         return int(intelligence)
+    
+
+    @classmethod
+    def calculate_agility(cls, read_speed, write_speed, disk_queue_length, upload_speed, download_speed):
+        base_agility = 5
+        # Normalize and cap contributions
+        io_speed_score = min((read_speed + write_speed) // 100, 2)  # Cap at 2 points
+        queue_score = max(min(1 - (disk_queue_length / 10), 1), 0)  # Normalize to max 1 point
+        network_speed_score = min((download_speed + upload_speed) // 100, 2)  # Cap at 2 points
+
+        # Calculate final agility score
+        agility_score = base_agility + io_speed_score + queue_score + network_speed_score
+        agility_score = max(min(agility_score, 10), 1)  # Ensure between 1 and 10
+
+        return int(agility_score)
 
 
 

@@ -8,6 +8,7 @@ from components.weather_fetcher import WeatherFetcher
 from components.special_calculator import SpecialCalculator
 from components.charisma_monitor import CharismaMonitor
 from components.stocks_fetcher import StocksFetcher
+from components.speed_fetcher import SpeedFetcher
 from datetime import datetime
 import platform
 import subprocess
@@ -90,6 +91,7 @@ class SpecialView():
         self.endurance_sprite = pygame.image.load("assets/sprite_sheets/endurance_sprite_sheet_no_bg.png").convert_alpha()
         self.charisma_sprite = pygame.image.load("assets/sprite_sheets/charisma_sprite_sheet_no_bg.png").convert_alpha()
         self.intelligence_sprite = pygame.image.load("assets/sprite_sheets/intelligence_sprite_sheet_no_bg.png").convert_alpha()
+        self.agility_sprite = pygame.image.load("assets/sprite_sheets/agility_sprite_sheet_no_bg.png").convert_alpha()
 
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
@@ -128,6 +130,7 @@ class SpecialView():
         self.weather_fetcher = WeatherFetcher(weather_api_key)
         self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip, self)
         self.stocks_fetcher = StocksFetcher(stocks_api_key)
+        self.speed_fetcher = SpeedFetcher()
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -239,6 +242,15 @@ class SpecialView():
                     self.intelligence_value = SpecialCalculator.calculate_intelligence(self.stocks_fetcher.stocks_data)
                 else:
                     self.stocks_fetcher.fetch_stocks_data_async()
+            
+            elif self.current_stat == 'Agility':
+                self.speed_fetcher.fetch_download_upload_speed_async()
+                self.speed_fetcher.fetch_disk_speed_async()
+
+                if self.speed_fetcher.upload_speed != None and self.speed_fetcher.download_speed != None:
+                    self.agility_value = SpecialCalculator.calculate_agility(self.speed_fetcher.read_speed, self.speed_fetcher.write_speed, 
+                                                                             self.speed_fetcher.disk_queue_length, self.speed_fetcher.upload_speed,
+                                                                             self.speed_fetcher.download_speed)
             
             # elif self.current_stat == 'Charisma':
             #     self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
@@ -359,7 +371,7 @@ class SpecialView():
             temp_text = self.font.render(f"Temp: {temp_f}°F", True, self.main_font_color)
             cloud_cover_text = self.font.render(f'Cloud Cover: {cloud_cover}', True, self.main_font_color)
             wind_mph_text = self.font.render(f'Wind: {str(wind_mph)} mph', True, self.main_font_color)
-            localtime_text = self.font.render(f'Local Time: {str(localtime_epoch)}', True, self.main_font_color)
+            localtime_text = self.font.render(f'{str(localtime_epoch)}', True, self.main_font_color)
 
             self.screen.blit(temp_text, (col1_x, y_offset + 25))
             self.screen.blit(cloud_cover_text, (col1_x, y_offset + 50))  
@@ -477,7 +489,50 @@ class SpecialView():
 
 
     def display_agility(self):
-        print('Displaying agility')
+        diff = self.agility_value - 5
+        intel_text = self.font.render(f'Agility Value: {str(self.agility_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+        col1_x = self.stats_area.left + 50
+        y_offset = self.stats_area.top + 10
+        center_x = self.area.left + (self.area.width - intel_text.get_width()) // 2
+        center_y = self.area.top + (self.area.height - intel_text.get_width()) // 2
+
+        self.screen.blit(intel_text, (center_x, y_offset))
+
+        if self.speed_fetcher.disk_queue_length != None:
+            read_speed_text = self.font.render(f"Read Speed: {self.speed_fetcher.read_speed} MB/s", True, self.main_font_color)
+            self.screen.blit(read_speed_text, (col1_x, y_offset + 50))
+
+            write_speed_text = self.font.render(f"Write Speed: {self.speed_fetcher.write_speed} MB/s", True, self.main_font_color)
+            self.screen.blit(write_speed_text, (col1_x, y_offset + 75))
+
+            disk_length_text = self.font.render(f"Disk Queue Length: {self.speed_fetcher.disk_queue_length}", True, self.main_font_color)
+            self.screen.blit(disk_length_text, (col1_x, y_offset + 100))
+
+        if self.speed_fetcher.upload_speed == None:
+            loading_text = self.font.render("Loading Upload/Download Speed...", True, self.main_font_color)
+            text_width = loading_text.get_width()
+            text_height = loading_text.get_height()
+
+            center_x = self.area.left + (self.area.width - text_width) // 2
+            center_y = self.area.top + (self.area.height - text_height)
+
+            self.screen.blit(loading_text, (center_x, center_y))
+        else:
+            upload_speed_text = self.font.render(f"Upload Speed: {round(self.speed_fetcher.upload_speed, 2)} Mbps", True, self.main_font_color)
+            self.screen.blit(upload_speed_text, (col1_x, y_offset + 125))
+
+            download_speed_text = self.font.render(f"Download Speed: {round(self.speed_fetcher.download_speed, 2)} Mbps", True, self.main_font_color)
+            self.screen.blit(download_speed_text, (col1_x, y_offset + 150))
+            
+        frame_width = self.agility_sprite.get_width() // 14
+        sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
+        sprite_y = y_offset + 50
+
+        self.animate_sprite(self.agility_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.agility_sprite.get_height())
+        
+        pygame.display.flip()
+
+
 
 
     def display_luck(self):
