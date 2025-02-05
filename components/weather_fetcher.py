@@ -2,6 +2,7 @@ import requests
 from io import BytesIO
 import threading
 import pygame
+from components.luck_manager import LuckManager
 
 
 class WeatherFetcher():
@@ -10,11 +11,15 @@ class WeatherFetcher():
         self.weather_data = None
         self.weather_icon = None
         self.is_fetching = True
+        self.luck_manager = LuckManager()
     
 
     def fetch_weather_data_async(self):
         thread = threading.Thread(target=self.fetch_weather_data, daemon=True)
         thread.start()
+
+        # if not self.is_fetching:
+        #     self.luck_manager.apply_lucky_event
 
 
     def fetch_weather_data(self):
@@ -26,7 +31,7 @@ class WeatherFetcher():
             )
             response.raise_for_status()
             self.weather_data = response.json()
-
+            # self.luck_manager.set_api_data(self.api_key, self.weather_data)
             icon_url = f"http:{self.weather_data['current']['condition']['icon']}"
             self.weather_icon = self.fetch_weather_icon(icon_url)
         except Exception as e:

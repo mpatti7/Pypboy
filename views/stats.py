@@ -9,6 +9,7 @@ from components.special_calculator import SpecialCalculator
 from components.charisma_monitor import CharismaMonitor
 from components.stocks_fetcher import StocksFetcher
 from components.speed_fetcher import SpeedFetcher
+from components.luck_manager import LuckManager
 from datetime import datetime
 import platform
 import subprocess
@@ -131,6 +132,7 @@ class SpecialView():
         self.charisma_monitor = CharismaMonitor(self.base_ip, self.gateway_ip, self)
         self.stocks_fetcher = StocksFetcher(stocks_api_key)
         self.speed_fetcher = SpeedFetcher()
+        self.luck_manager = LuckManager()
 
         self.buttons = [
             Button(self.area.right - (self.area.right * .96), 125, 75, 25, "Strength", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strength')),
@@ -223,6 +225,8 @@ class SpecialView():
                 self.weather_fetcher.fetch_weather_data_async()
                 if self.weather_fetcher.weather_data != None:
                     self.perception_value, factors_list = SpecialCalculator.calculate_perception(self.weather_fetcher)
+                    # self.luck_manager.set_api_data(self.weather_fetcher.api_key, self.weather_fetcher.weather_data)
+                    # self.luck_manager.apply_lucky_event()
 
             elif self.current_stat == 'Endurance':
                 uptime_seconds = time.time() - psutil.boot_time()
@@ -251,6 +255,10 @@ class SpecialView():
                     self.agility_value = SpecialCalculator.calculate_agility(self.speed_fetcher.read_speed, self.speed_fetcher.write_speed, 
                                                                              self.speed_fetcher.disk_queue_length, self.speed_fetcher.upload_speed,
                                                                              self.speed_fetcher.download_speed)
+            
+            elif self.current_stat == 'Luck':
+                # self.luck_manager.apply_lucky_event()
+                self.luck_value = SpecialCalculator.calculate_luck()
             
             # elif self.current_stat == 'Charisma':
             #     self.devices, self.device_count, self.gateway_status = self.charisma_monitor.get_charisma_factors()
@@ -363,6 +371,7 @@ class SpecialView():
 
             self.screen.blit(percep_text, (center_x, y_offset))
 
+            # try:
             temp_f = self.weather_fetcher.weather_data["current"]["temp_f"]
             cloud_cover = self.weather_fetcher.weather_data["current"]["cloud"]
             wind_mph = self.weather_fetcher.weather_data['current']['wind_mph']
@@ -377,6 +386,8 @@ class SpecialView():
             self.screen.blit(cloud_cover_text, (col1_x, y_offset + 50))  
             self.screen.blit(wind_mph_text, (col1_x, y_offset + 75))  
             self.screen.blit(localtime_text, (col1_x, y_offset + 100))  
+            # except Exception as e:
+            #     print(e)
 
             frame_width = self.perception_sprite.get_width() // 14
             sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
@@ -533,10 +544,16 @@ class SpecialView():
         pygame.display.flip()
 
 
-
-
     def display_luck(self):
-        print('Displaying luck')
+        diff = self.luck_value - 5
+        luck_text = self.font.render(f'Luck Value: {str(self.luck_value)}({"+" if diff >= 0 else ""}{diff})', True, self.main_font_color)
+        col1_x = self.stats_area.left + 50
+        y_offset = self.stats_area.top + 10
+        center_x = self.area.left + (self.area.width - luck_text.get_width()) // 2
+        center_y = self.area.top + (self.area.height - luck_text.get_width()) // 2
+
+        self.screen.blit(luck_text, (center_x, y_offset))
+
 
 
 

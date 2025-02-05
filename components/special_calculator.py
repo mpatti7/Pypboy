@@ -1,4 +1,5 @@
 from datetime import datetime
+from components.luck_manager import LuckManager
 
 
 class SpecialCalculator():
@@ -158,7 +159,24 @@ class SpecialCalculator():
         return int(agility_score)
 
 
+    @classmethod
+    def calculate_luck(cls):
+        luck_value = 5
+        luck_manager = LuckManager()
 
+        if 'Lucky' in luck_manager.api_data:
+            luck_value += 1
+        if 'Unlucky' in luck_manager.api_data:
+            luck_value -= 1
+        
+        current_time = datetime.now().strftime("%H:%M:%S")
+        if luck_manager.boost_times['boost_start'] <= current_time <= luck_manager.boost_times['boost_end']:
+            luck_value += 1  
+
+        elif luck_manager.boost_times['decrease_start'] <= current_time <= luck_manager.boost_times['decrease_end']:
+            luck_value -= 1 
+
+        return luck_value
 
 
 

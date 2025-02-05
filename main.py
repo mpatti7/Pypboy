@@ -2,6 +2,7 @@ import pygame
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 from controllers.home import HomeController
 import os
+from components.luck_manager import LuckManager
 
 # os.environ['SDL_AUDIODRIVER'] = 'pipewire'
 
@@ -15,6 +16,7 @@ class PipboyApp:
 
         # Initialize the current screen (default: Home Screen)
         self.current_controller = HomeController(self.screen)
+        LuckManager()
 
 
     def run(self):

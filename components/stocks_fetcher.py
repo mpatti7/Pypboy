@@ -2,6 +2,7 @@ import requests
 import threading
 import pygame
 from datetime import date
+from components.luck_manager import LuckManager
 
 
 class StocksFetcher():
@@ -40,6 +41,9 @@ class StocksFetcher():
                 data = self.extract_stocks_data(response.json(), company)
                 if data:
                     self.stocks_data[company] = data
+                    luck_manager = LuckManager()
+                    luck_manager.api_data = data
+                    luck_manager.apply_lucky_event()
             except Exception as e:
                 print(f"Error fetching stock data for {company}: {e}")
             finally:
