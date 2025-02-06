@@ -16,7 +16,8 @@ class PipboyApp:
 
         # Initialize the current screen (default: Home Screen)
         self.current_controller = HomeController(self.screen)
-        LuckManager()
+        luck = LuckManager()
+        luck.generate_time_ranges()
 
 
     def run(self):

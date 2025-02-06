@@ -12,14 +12,22 @@ class LuckManager():
         return cls._instance
 
 
-    def __init__(self, api_key=None, api_data={}):
+    def __init__(self, weather_data={}, stocks_data={}):
         if not hasattr(self, '_initialized'):
             self._initialized = True  # Prevent double initialization
-            self.api_key = api_key
-            self.api_data = api_data
+            self.weather_data = weather_data
+            self.stocks_data = stocks_data
             self.lucky_event_triggered = False
             self.unlucky_event_triggered = False
+            self.lucky_range = ''
+            self.unlucky_range = ''
             self.last_generated = None
+            self.luck_events = {
+                'stocks_lucky': '',
+                'stocks_unlucky': '',
+                'weather_lucky': '',
+                'weather_unlucky': ''
+            }
             self.boost_times = {
                 'boost_start': '',
                 'boost_end': '',
@@ -28,45 +36,78 @@ class LuckManager():
             }
     
 
-    def set_api_data(self, api_key, api_data):
-        self.api_key = api_key
-        self.api_data = api_data
+    def set_weather_data(self, api_data):
+        self.weather_data = api_data
+        self.apply_lucky_event_weather()
         
+
+    def set_stocks_data(self, api_data):
+        self.stocks_data = api_data
+        self.apply_lucky_event_stocks()
+
 
     def generate_time_ranges(self):
         current_time = datetime.now()
 
         if self.last_generated is None or current_time - self.last_generated >= timedelta(hours=24):
-            boost_start_hour = random.randint(0, 22)  # Random start hour for boost between 00:00 to 22:00
-            boost_start_minute = random.randint(0, 59)
-            boost_duration = random.randint(1, 4)  # Boost duration between 1 and 4 hours
+            while True:
+                boost_start_hour = random.randint(0, 22)
+                boost_start_minute = random.randint(0, 59)
+                boost_duration = random.randint(1, 4)
 
-            self.boost_times['boost_start'] = datetime.strptime(f"{boost_start_hour:02d}:{boost_start_minute:02d}", "%H:%M")
-            self.boost_times['boost_end'] = self.boost_times['boost_start'] + timedelta(hours=boost_duration)
+                decrease_start_hour = random.randint(0, 22)
+                decrease_start_minute = random.randint(0, 59)
+                decrease_duration = random.randint(1, 4)
 
-            decrease_start_hour = random.randint(0, 22)
-            decrease_start_minute = random.randint(0, 59)
-            decrease_duration = random.randint(1, 4)
+                boost_start = datetime.strptime(f"{boost_start_hour:02d}:{boost_start_minute:02d}", "%H:%M")
+                boost_end = boost_start + timedelta(hours=boost_duration)
 
-            self.boost_times['decrease_start'] = datetime.strptime(f"{decrease_start_hour:02d}:{decrease_start_minute:02d}", "%H:%M")
-            self.boost_times['decrease_end'] = self.boost_times['decrease_start'] + timedelta(hours=decrease_duration)
+                decrease_start = datetime.strptime(f"{decrease_start_hour:02d}:{decrease_start_minute:02d}", "%H:%M")
+                decrease_end = decrease_start + timedelta(hours=decrease_duration)
+
+                # Ensure ranges do not overlap
+                if boost_start >= decrease_end or boost_end <= decrease_start:
+                    self.boost_times['boost_start'] = boost_start
+                    self.boost_times['boost_end'] = boost_end
+                    self.boost_times['decrease_start'] = decrease_start
+                    self.boost_times['decrease_end'] = decrease_end
+                    break
 
             self.last_generated = current_time
-
-        # Ensure no overlap between boost and decrease
-        while self.boost_times['boost_start'] < self.boost_times['decrease_end'] and self.boost_times['boost_end'] > self.boost_times['decrease_start']:
-            self.generate_time_ranges()
     
 
-    def apply_lucky_event(self):
-        # Chance to apply a lucky event
-        if random.random() < 0.1:  # 10% chance
-            self.lucky_event_triggered = True
-            key = random.choice(list(self.api_data.keys()))  # Randomly pick a key
-            self.api_data[key] = f"{self.api_data[key]} - Lucky!"
-        elif random.random() < 0.1:  # 10% chance
-            self.unlucky_event_triggered = True
-            key = random.choice(list(self.api_data.keys()))  # Randomly pick a key
-            self.api_data[key] = f"{self.api_data[key]} - Unlucky!"
+    def apply_lucky_event_weather(self):
+        if self.weather_data != {} and self.weather_data != None:
+            rand = random.random()
+            print(rand)
+            if rand < 0.9:  # 10% chance
+                self.lucky_weather_triggered = True
+                key = random.choice(list(self.weather_data.keys()))  
+                self.weather_data[f"{key}_lucky"] = f"Lucky Boost Applied to {key}!"
+                self.luck_events['weather_lucky'] = f"Lucky Boost Applied to {key}!"
 
-        return self.api_data, self.unlucky_event_triggered
+            elif random.random() < 0.9: 
+                self.unlucky_weather_triggered = True
+                key = random.choice(list(self.weather_data.keys()))  
+                self.weather_data[f"{key}_unlucky"] = f"Unlucky Decrease Applied to {key} :("
+                self.luck_events['weather_unlucky'] = f"Unlucky Decrease Applied to {key} :("
+            else:
+                self.luck_events['weather_lucky'] = ''
+                self.luck_events['weather_unlucky'] = ''
+
+
+    def apply_lucky_event_stocks(self):
+        if self.stocks_data != {} and self.stocks_data != None:
+            if random.random() < 0.1:  
+                self.lucky_stocks_triggered = True
+                key = random.choice(list(self.stocks_data.keys()))  
+                self.stocks_data[f"{key}_lucky"] = f"Lucky Boost Applied to {key}!"
+                self.luck_events['stocks_lucky'] = f"Lucky Boost Applied to {key}!"
+            elif random.random() < 0.1: 
+                self.unlucky_stocks_triggered = True
+                key = random.choice(list(self.stocks_data.keys()))  
+                self.stocks_data[f"{key}_unlucky"] = f"Unlucky Decrease Applied to {key} :("
+                self.luck_events['stocks_unlucky'] = f"Unlucky Decrease Applied to {key} :("
+            else:
+                self.luck_events['stocks_lucky'] = ''
+                self.luck_events['stocks_unlucky'] = ''

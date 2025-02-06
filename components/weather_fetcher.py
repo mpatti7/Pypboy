@@ -18,9 +18,6 @@ class WeatherFetcher():
         thread = threading.Thread(target=self.fetch_weather_data, daemon=True)
         thread.start()
 
-        # if not self.is_fetching:
-        #     self.luck_manager.apply_lucky_event
-
 
     def fetch_weather_data(self):
         try:
@@ -31,7 +28,7 @@ class WeatherFetcher():
             )
             response.raise_for_status()
             self.weather_data = response.json()
-            # self.luck_manager.set_api_data(self.api_key, self.weather_data)
+            self.luck_manager.set_weather_data(self.weather_data)
             icon_url = f"http:{self.weather_data['current']['condition']['icon']}"
             self.weather_icon = self.fetch_weather_icon(icon_url)
         except Exception as e:

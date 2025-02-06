@@ -164,17 +164,43 @@ class SpecialCalculator():
         luck_value = 5
         luck_manager = LuckManager()
 
-        if 'Lucky' in luck_manager.api_data:
+        if luck_manager.weather_data and 'lucky' in luck_manager.weather_data:
             luck_value += 1
-        if 'Unlucky' in luck_manager.api_data:
+        if luck_manager.weather_data and 'unlucky' in luck_manager.weather_data:
+            luck_value -= 1
+
+        if luck_manager.stocks_data and 'lucky' in luck_manager.stocks_data:
+            luck_value += 1
+        if luck_manager.stocks_data and 'unlucky' in luck_manager.stocks_data:
             luck_value -= 1
         
         current_time = datetime.now().strftime("%H:%M:%S")
-        if luck_manager.boost_times['boost_start'] <= current_time <= luck_manager.boost_times['boost_end']:
-            luck_value += 1  
+        current_time = datetime.now().strptime(current_time, "%H:%M:%S")
 
-        elif luck_manager.boost_times['decrease_start'] <= current_time <= luck_manager.boost_times['decrease_end']:
+        # print('BOOST')
+        # print(luck_manager.boost_times['boost_start'])
+        # print(current_time)
+        # print(luck_manager.boost_times['boost_end'])
+
+        # print('DECREASE')
+        # print(luck_manager.boost_times['decrease_start'])
+        # print(current_time)
+        # print(luck_manager.boost_times['decrease_end'])
+
+        if luck_manager.boost_times['boost_start'] <= current_time and current_time<= luck_manager.boost_times['boost_end']:
+            # print('LUCK BOOST RANGE')
+            luck_manager.lucky_range = f'Luck BOOST! {str(luck_manager.boost_times["boost_start"].time())} to {luck_manager.boost_times["boost_end"].time()}'
+            luck_value += 1  
+        else:
+            luck_manager.lucky_range = ''
+
+        if luck_manager.boost_times['decrease_start'] <= current_time and current_time <= luck_manager.boost_times['decrease_end']:
+            # print('LUCK DECREASE RANGE')
+            luck_manager.unlucky_range = f'Luck DECREASE! {str(luck_manager.boost_times["decrease_start"].time())} to {luck_manager.boost_times["decrease_end"].time()}'
             luck_value -= 1 
+        else:
+            luck_manager.unlucky_range = ''
+
 
         return luck_value
 

@@ -222,11 +222,10 @@ class SpecialView():
                 self.strength_value = SpecialCalculator.calculate_strength(self.cpu_usage, self.freq.current, self.used_memory, self.cores, self.core_usages)
 
             elif self.current_stat == 'Perception':
-                self.weather_fetcher.fetch_weather_data_async()
+                if self.weather_fetcher.weather_data == None:
+                    self.weather_fetcher.fetch_weather_data_async()
                 if self.weather_fetcher.weather_data != None:
                     self.perception_value, factors_list = SpecialCalculator.calculate_perception(self.weather_fetcher)
-                    # self.luck_manager.set_api_data(self.weather_fetcher.api_key, self.weather_fetcher.weather_data)
-                    # self.luck_manager.apply_lucky_event()
 
             elif self.current_stat == 'Endurance':
                 uptime_seconds = time.time() - psutil.boot_time()
@@ -255,9 +254,7 @@ class SpecialView():
                     self.agility_value = SpecialCalculator.calculate_agility(self.speed_fetcher.read_speed, self.speed_fetcher.write_speed, 
                                                                              self.speed_fetcher.disk_queue_length, self.speed_fetcher.upload_speed,
                                                                              self.speed_fetcher.download_speed)
-            
             elif self.current_stat == 'Luck':
-                # self.luck_manager.apply_lucky_event()
                 self.luck_value = SpecialCalculator.calculate_luck()
             
             # elif self.current_stat == 'Charisma':
@@ -371,7 +368,6 @@ class SpecialView():
 
             self.screen.blit(percep_text, (center_x, y_offset))
 
-            # try:
             temp_f = self.weather_fetcher.weather_data["current"]["temp_f"]
             cloud_cover = self.weather_fetcher.weather_data["current"]["cloud"]
             wind_mph = self.weather_fetcher.weather_data['current']['wind_mph']
@@ -386,8 +382,6 @@ class SpecialView():
             self.screen.blit(cloud_cover_text, (col1_x, y_offset + 50))  
             self.screen.blit(wind_mph_text, (col1_x, y_offset + 75))  
             self.screen.blit(localtime_text, (col1_x, y_offset + 100))  
-            # except Exception as e:
-            #     print(e)
 
             frame_width = self.perception_sprite.get_width() // 14
             sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
@@ -554,6 +548,21 @@ class SpecialView():
 
         self.screen.blit(luck_text, (center_x, y_offset))
 
+        weather_luck_text = self.font.render(f"{self.luck_manager.luck_events['weather_lucky'] if self.luck_manager.luck_events['weather_lucky'] != '' else 'No lucky event for weather'}",
+                                              True, self.main_font_color)
+        self.screen.blit(weather_luck_text, (col1_x, y_offset + 50))
+
+        weather_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['weather_unlucky'] if self.luck_manager.luck_events['weather_unlucky'] != '' else 'No unlucky event for weather'}", 
+                                                True, self.main_font_color)
+        self.screen.blit(weather_unlucky_text, (col1_x, y_offset + 100))
+
+        lucky_range_text = self.font.render(f"{self.luck_manager.lucky_range}", True, self.main_font_color)
+        self.screen.blit(lucky_range_text, (col1_x, y_offset + 150))
+
+        unlucky_range_text = self.font.render(f"{self.luck_manager.unlucky_range}", True, self.main_font_color)
+        self.screen.blit(unlucky_range_text, (col1_x, y_offset + 150))
+
+        pygame.display.flip()
 
 
 
