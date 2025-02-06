@@ -22,7 +22,8 @@ class WeatherView():
             'Rainy': 'assets/images/vaultboy_umbrella.png',
             'Clear': '',
             'Light rain': '',
-            'Overcast': ''
+            'Overcast': '',
+            'Patchy light snow': ''
         }
     
 

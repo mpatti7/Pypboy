@@ -164,14 +164,14 @@ class SpecialCalculator():
         luck_value = 5
         luck_manager = LuckManager()
 
-        if luck_manager.weather_data and 'lucky' in luck_manager.weather_data:
+        if luck_manager.luck_events['weather_lucky'] != '':
             luck_value += 1
-        if luck_manager.weather_data and 'unlucky' in luck_manager.weather_data:
+        if luck_manager.luck_events['weather_unlucky'] != '':
             luck_value -= 1
 
-        if luck_manager.stocks_data and 'lucky' in luck_manager.stocks_data:
+        if luck_manager.luck_events['stocks_lucky'] != '':
             luck_value += 1
-        if luck_manager.stocks_data and 'unlucky' in luck_manager.stocks_data:
+        if luck_manager.luck_events['stocks_unlucky'] != '':
             luck_value -= 1
         
         current_time = datetime.now().strftime("%H:%M:%S")

@@ -8,8 +8,9 @@ from components.luck_manager import LuckManager
 class StocksFetcher():
     def __init__(self, api_key):
         self.api_key = api_key
-        self.stocks_data =  {'Apple': {'date': '2025-02-03', 'closing_price': 228.85, 'opening_price': 229.7, 'price_change': -0.8499999999999943, 'percent_change': -0.37}, 'Nvidia': {'date': '2025-02-03', 'closing_price': 117.705, 'opening_price': 114.77, 'price_change': 2.9350000000000023, 'percent_change': 2.55}, 'Microsoft': {'date': '2025-02-03', 'closing_price': 414.0, 'opening_price': 411.6, 'price_change': 2.3999999999999773, 'percent_change': 0.58}, 'Google': {'date': '2025-02-03', 'closing_price': 201.81, 'opening_price': 200.2, 'price_change': 1.6100000000000136, 'percent_change': 0.80}, 'Amazon': {'date': '2025-02-03', 'closing_price': 237.77, 'opening_price': 233.61, 'price_change': 4.159999999999997, 'percent_change': 1.78}}
+        self.stocks_data =  None#{'Apple': {'date': '2025-02-03', 'closing_price': 228.85, 'opening_price': 229.7, 'price_change': -0.8499999999999943, 'percent_change': -0.37}, 'Nvidia': {'date': '2025-02-03', 'closing_price': 117.705, 'opening_price': 114.77, 'price_change': 2.9350000000000023, 'percent_change': 2.55}, 'Microsoft': {'date': '2025-02-03', 'closing_price': 414.0, 'opening_price': 411.6, 'price_change': 2.3999999999999773, 'percent_change': 0.58}, 'Google': {'date': '2025-02-03', 'closing_price': 201.81, 'opening_price': 200.2, 'price_change': 1.6100000000000136, 'percent_change': 0.80}, 'Amazon': {'date': '2025-02-03', 'closing_price': 237.77, 'opening_price': 233.61, 'price_change': 4.159999999999997, 'percent_change': 1.78}}
         self.is_fetching = True
+        self.luck_manager = LuckManager()
 
         self.companines = {
             'Apple': 'AAPL',
@@ -41,13 +42,11 @@ class StocksFetcher():
                 data = self.extract_stocks_data(response.json(), company)
                 if data:
                     self.stocks_data[company] = data
-                    luck_manager = LuckManager()
-                    luck_manager.api_data = data
-                    luck_manager.apply_lucky_event()
             except Exception as e:
                 print(f"Error fetching stock data for {company}: {e}")
             finally:
                 self.is_fetching = False
+        self.luck_manager.set_stocks_data(self.stocks_data)
     
 
     def extract_stocks_data(self, raw_data, company):

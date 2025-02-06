@@ -78,19 +78,16 @@ class LuckManager():
 
     def apply_lucky_event_weather(self):
         if self.weather_data != {} and self.weather_data != None:
-            rand = random.random()
-            print(rand)
-            if rand < 0.9:  # 10% chance
+            if random.random() < 0.9:  # 10% chance
                 self.lucky_weather_triggered = True
                 key = random.choice(list(self.weather_data.keys()))  
-                self.weather_data[f"{key}_lucky"] = f"Lucky Boost Applied to {key}!"
-                self.luck_events['weather_lucky'] = f"Lucky Boost Applied to {key}!"
-
+                self.weather_data[f"{key}_lucky"] = f"Lucky weather {key}!"
+                self.luck_events['weather_lucky'] = f"Lucky weather {key}!"
             elif random.random() < 0.9: 
                 self.unlucky_weather_triggered = True
                 key = random.choice(list(self.weather_data.keys()))  
-                self.weather_data[f"{key}_unlucky"] = f"Unlucky Decrease Applied to {key} :("
-                self.luck_events['weather_unlucky'] = f"Unlucky Decrease Applied to {key} :("
+                self.weather_data[f"{key}_unlucky"] = f"Unlucky weather {key} :("
+                self.luck_events['weather_unlucky'] = f"Unlucky weather {key} :("
             else:
                 self.luck_events['weather_lucky'] = ''
                 self.luck_events['weather_unlucky'] = ''
@@ -98,16 +95,16 @@ class LuckManager():
 
     def apply_lucky_event_stocks(self):
         if self.stocks_data != {} and self.stocks_data != None:
-            if random.random() < 0.1:  
+            if random.random() < 0.9:  
                 self.lucky_stocks_triggered = True
                 key = random.choice(list(self.stocks_data.keys()))  
-                self.stocks_data[f"{key}_lucky"] = f"Lucky Boost Applied to {key}!"
-                self.luck_events['stocks_lucky'] = f"Lucky Boost Applied to {key}!"
-            elif random.random() < 0.1: 
+                # self.stocks_data[f"{key}_lucky"] = f"Lucky {key} stock!"
+                self.luck_events['stocks_lucky'] = f"Lucky {key} stock!"
+            elif random.random() < 0.9: 
                 self.unlucky_stocks_triggered = True
                 key = random.choice(list(self.stocks_data.keys()))  
-                self.stocks_data[f"{key}_unlucky"] = f"Unlucky Decrease Applied to {key} :("
-                self.luck_events['stocks_unlucky'] = f"Unlucky Decrease Applied to {key} :("
+                # self.stocks_data[f"{key}_unlucky"] = f"Unlucky {key} stock :("
+                self.luck_events['stocks_unlucky'] = f"Unlucky {key} stock :("
             else:
                 self.luck_events['stocks_lucky'] = ''
                 self.luck_events['stocks_unlucky'] = ''

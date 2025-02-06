@@ -93,6 +93,7 @@ class SpecialView():
         self.charisma_sprite = pygame.image.load("assets/sprite_sheets/charisma_sprite_sheet_no_bg.png").convert_alpha()
         self.intelligence_sprite = pygame.image.load("assets/sprite_sheets/intelligence_sprite_sheet_no_bg.png").convert_alpha()
         self.agility_sprite = pygame.image.load("assets/sprite_sheets/agility_sprite_sheet_no_bg.png").convert_alpha()
+        self.luck_sprite = pygame.image.load("assets/sprite_sheets/luck_sprite_sheet_no_bg.png").convert_alpha()
 
         self.last_update = pygame.time.get_ticks()
         self.current_frame = 0
@@ -241,10 +242,10 @@ class SpecialView():
                 self.endurance_value = SpecialCalculator.calculate_endurance(self.uptime_hours, self.cpu_temp)
             
             elif self.current_stat == 'Intelligence':
+                if self.stocks_fetcher.stocks_data == None:
+                    self.stocks_fetcher.fetch_stocks_data_async()
                 if self.stocks_fetcher.stocks_data != None:
                     self.intelligence_value = SpecialCalculator.calculate_intelligence(self.stocks_fetcher.stocks_data)
-                else:
-                    self.stocks_fetcher.fetch_stocks_data_async()
             
             elif self.current_stat == 'Agility':
                 self.speed_fetcher.fetch_download_upload_speed_async()
@@ -283,26 +284,27 @@ class SpecialView():
         self.gateway_status = gateway_status
         self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
         
+    
+    def get_sprite_sheet_frames(self, sprite_sheet, num_frames):
+        frame_width = sprite_sheet.get_width() // num_frames
+        frame_height = sprite_sheet.get_height()
 
-    def get_sprite_sheet_frames(self, sprite_sheet, num_frames, frame_width, frame_height):
         frames = []
-
-        scale_factor = min(self.stats_area.width / (num_frames * frame_width), self.stats_area.height / frame_height)
-        
-        scaled_frame_width = int(frame_width * scale_factor) 
-        scaled_frame_height = int(frame_height * scale_factor)
-
         for i in range(num_frames):
             frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
-            frame = sprite_sheet.subsurface(frame_rect).copy()
-            # frame = pygame.transform.scale(frame, (scaled_frame_width, scaled_frame_height))
-            frames.append(frame)
+
+            # Ensure the frame rectangle fits within the image boundary
+            if frame_rect.right <= sprite_sheet.get_width():
+                frame = sprite_sheet.subsurface(frame_rect).copy()
+                frames.append(frame)
+            else:
+                print(f"Skipping invalid frame at index {i}. Rectangle exceeds surface bounds.")
 
         return frames
 
 
-    def animate_sprite(self, sprite_sheet, screen, x, y, num_frames, frame_width, frame_height):
-        frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames, frame_width, frame_height)
+    def animate_sprite(self, sprite_sheet, screen, x, y, num_frames):
+        frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames)
         frame_delay = 150
         now = pygame.time.get_ticks()
         if now - self.last_update > frame_delay:
@@ -343,7 +345,7 @@ class SpecialView():
         frame_width = self.strength_sprite.get_width() // 14
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
         sprite_y = y_offset + 50
-        self.animate_sprite(self.strength_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.strength_sprite.get_height())
+        self.animate_sprite(self.strength_sprite, self.screen, sprite_x, sprite_y, 14)
 
         pygame.display.flip()
 
@@ -386,7 +388,7 @@ class SpecialView():
             frame_width = self.perception_sprite.get_width() // 14
             sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
             sprite_y = y_offset + 50
-            self.animate_sprite(self.perception_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.perception_sprite.get_height())
+            self.animate_sprite(self.perception_sprite, self.screen, sprite_x, sprite_y, 8)
 
             pygame.display.flip()
 
@@ -411,7 +413,7 @@ class SpecialView():
         frame_width = self.endurance_sprite.get_width() // 14
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
         sprite_y = y_offset + 50
-        self.animate_sprite(self.endurance_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.endurance_sprite.get_height())
+        self.animate_sprite(self.endurance_sprite, self.screen, sprite_x, sprite_y, 4)
 
         pygame.display.flip()
 
@@ -446,7 +448,7 @@ class SpecialView():
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
         sprite_y = y_offset + 50
 
-        self.animate_sprite(self.charisma_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.charisma_sprite.get_height())
+        self.animate_sprite(self.charisma_sprite, self.screen, sprite_x, sprite_y, 8)
         
         pygame.display.flip()
 
@@ -488,7 +490,7 @@ class SpecialView():
             sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
             sprite_y = y_offset + 50
 
-            self.animate_sprite(self.intelligence_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.intelligence_sprite.get_height())
+            self.animate_sprite(self.intelligence_sprite, self.screen, sprite_x, sprite_y, 8)
             
             pygame.display.flip()
 
@@ -533,7 +535,7 @@ class SpecialView():
         sprite_x = (self.stats_area.left + self.stats_area.width // 2) - frame_width // 2
         sprite_y = y_offset + 50
 
-        self.animate_sprite(self.agility_sprite, self.screen, sprite_x, sprite_y, 14, frame_width, self.agility_sprite.get_height())
+        self.animate_sprite(self.agility_sprite, self.screen, sprite_x, sprite_y, 4)
         
         pygame.display.flip()
 
@@ -550,17 +552,31 @@ class SpecialView():
 
         weather_luck_text = self.font.render(f"{self.luck_manager.luck_events['weather_lucky'] if self.luck_manager.luck_events['weather_lucky'] != '' else 'No lucky event for weather'}",
                                               True, self.main_font_color)
-        self.screen.blit(weather_luck_text, (col1_x, y_offset + 50))
+        self.screen.blit(weather_luck_text, (col1_x, y_offset + 30))
 
         weather_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['weather_unlucky'] if self.luck_manager.luck_events['weather_unlucky'] != '' else 'No unlucky event for weather'}", 
                                                 True, self.main_font_color)
-        self.screen.blit(weather_unlucky_text, (col1_x, y_offset + 100))
+        self.screen.blit(weather_unlucky_text, (col1_x, y_offset + 60))
+
+        stocks_luck_text = self.font.render(f"{self.luck_manager.luck_events['stocks_lucky'] if self.luck_manager.luck_events['stocks_lucky'] != '' else 'No lucky event for stocks'}",
+                                              True, self.main_font_color)
+        self.screen.blit(stocks_luck_text, (col1_x, y_offset + 90))
+
+        stocks_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['stocks_unlucky'] if self.luck_manager.luck_events['stocks_unlucky'] != '' else 'No unlucky event for stocks'}", 
+                                                True, self.main_font_color)
+        self.screen.blit(stocks_unlucky_text, (col1_x, y_offset + 120))
 
         lucky_range_text = self.font.render(f"{self.luck_manager.lucky_range}", True, self.main_font_color)
         self.screen.blit(lucky_range_text, (col1_x, y_offset + 150))
 
         unlucky_range_text = self.font.render(f"{self.luck_manager.unlucky_range}", True, self.main_font_color)
         self.screen.blit(unlucky_range_text, (col1_x, y_offset + 150))
+
+        frame_width = self.luck_sprite.get_width() // 14
+        sprite_x = (self.stats_area.left + self.stats_area.width // 1.5) - frame_width // 2
+        sprite_y = y_offset + 50
+
+        self.animate_sprite(self.luck_sprite, self.screen, sprite_x, sprite_y, 6)
 
         pygame.display.flip()
 
