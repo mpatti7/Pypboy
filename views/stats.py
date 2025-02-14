@@ -43,6 +43,8 @@ class StatsView():
 
         elif self.current_view == 'special':
             self.special_view.draw()
+        elif self.current_view == 'perks':
+            self.perks_view.draw()
 
         self.draw_buttons()
     
@@ -586,11 +588,43 @@ class PerksView():
     def __init__(self, screen, area):
         self.screen = screen
         self.area = area
-        self.buttons = []
+        self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
+        self.buttons = [
+            Button(self.area.right - (self.area.right * .87), 125, 75, 25, "Always Active", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 175, 75, 25, "Strong Back", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 200, 75, 25, "Awareness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 225, 75, 25, "Toughness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 250, 75, 25, "Local Leader", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 275, 75, 25, "Hacker", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 300, 75, 25, "Quick Hands", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 325, 75, 25, "Idiot Savant", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+        
+            Button(self.area.right - (self.area.right * .23), 125, 75, 25, "Skill Based", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            
+        ]
+    
+
+    def draw(self):
+        self.draw_buttons()
+    
+
+    def draw_buttons(self):
+        for button in self.buttons:
+            button.draw(self.screen)
 
 
     def handle_event(self, event):
         for button in self.buttons:
             button.handle_event(event)
+    
+
+    def create_action(self, button_name):
+        def action():
+            # Set this button active and all others inactive
+            for button in self.buttons:
+                button.is_active = (button.text == button_name)
+            print(f"{button_name} button clicked!")
+
+        return action
 
 
