@@ -589,23 +589,57 @@ class PerksView():
         self.screen = screen
         self.area = area
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
+        self.main_font_color = (95, 255, 177, 128)
+        self.current_perk = None
         self.buttons = [
             Button(self.area.right - (self.area.right * .87), 125, 75, 25, "Always Active", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 175, 75, 25, "Strong Back", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 200, 75, 25, "Awareness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 225, 75, 25, "Toughness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 250, 75, 25, "Local Leader", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 275, 75, 25, "Hacker", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 300, 75, 25, "Quick Hands", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            Button(self.area.right - (self.area.right * .87), 325, 75, 25, "Idiot Savant", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
+            Button(self.area.right - (self.area.right * .87), 175, 75, 25, "Strong Back", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Strong Back')),
+            Button(self.area.right - (self.area.right * .87), 205, 75, 25, "Awareness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Awareness')),
+            Button(self.area.right - (self.area.right * .87), 235, 75, 25, "Toughness", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Toughness')),
+            Button(self.area.right - (self.area.right * .87), 265, 75, 25, "Local Leader", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Local Leader')),
+            Button(self.area.right - (self.area.right * .87), 295, 75, 25, "Hacker", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Hacker')),
+            Button(self.area.right - (self.area.right * .87), 325, 75, 25, "Quick Hands", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Quick Hands')),
+            Button(self.area.right - (self.area.right * .87), 355, 75, 25, "Idiot Savant", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Idiot Savant')),
         
             Button(self.area.right - (self.area.right * .23), 125, 75, 25, "Skill Based", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-            
+
         ]
+
+        self.perks = {
+            'Strong Back': {
+                'description': "What are you, part pack mule? Gain +25 to carry weight",
+                'image': pygame.image.load("assets/images/strong_back.png").convert_alpha(),
+            },
+            'Awareness': {
+                'description': "To defeat your enemies, know their weaknesses! You can view a target's specific damage resistances in V.A.T.S.",
+                'image': pygame.image.load("assets/images/awareness.png").convert_alpha()
+            },
+            'Toughness': {
+                'description': "If nothing else, you can take a beating! Instantly gain +10 damage resistance.",
+                'image': pygame.image.load("assets/images/toughness.png").convert_alpha()
+            },
+            'Local Leader': {
+                'description': "As the ruler everyone turns to, you are able to establish supply lines between your workshop settlements.",
+                'image': pygame.image.load("assets/images/local_leader.png").convert_alpha()
+            },
+            'Hacker': {
+                'description': "Knowledge of cutting-edge computer encryption allows you to hack Advanced terminals.",
+                'image': pygame.image.load("assets/images/hacker.png").convert_alpha()
+            },
+            'Quick Hands': {
+                'description': "In combat, there's no time to hesitate. You can reload all guns faster.",
+                'image': pygame.image.load("assets/images/quick_hands.png").convert_alpha()
+            },
+            'Idiot Savant': {
+                'description': "You're not stupid! Just... different. Randomly receive 3x XP from any action, and the lower your Intelligence, the greater the chance.",
+                'image': pygame.image.load("assets/images/idiot_savant.png").convert_alpha()
+            }
+        }
     
 
     def draw(self):
         self.draw_buttons()
+        self.display_perk(self.current_perk)
     
 
     def draw_buttons(self):
@@ -625,6 +659,71 @@ class PerksView():
                 button.is_active = (button.text == button_name)
             print(f"{button_name} button clicked!")
 
+            self.current_perk = button_name
+            # self.display_perk(button_name)
+
         return action
+    
+
+    def display_perk(self, perk_name):
+        if perk_name not in self.perks:
+            return 
+
+        perk = self.perks[perk_name]
+        image = perk['image']
+        description = perk['description']
+
+        # Scale image to half size while keeping aspect ratio
+        orig_width, orig_height = image.get_size()
+        scale_factor = 0.5
+        new_width = int(orig_width * scale_factor)
+        new_height = int(orig_height * scale_factor)
+        image = pygame.transform.scale(image, (new_width, new_height))
+
+        area_x, area_y, area_width, area_height = self.area
+
+        column_width = area_width // 3  # Divide the available area into 3 columns
+        middle_x = area_x + column_width  # Start of the middle column
+        text_area_width = column_width  # Limit text width to column width
+
+        # Center image horizontally within the middle column
+        image_x = middle_x + (column_width - new_width) // 2
+        image_y = area_y + (area_height // 4)  
+
+        wrapped_lines = self.wrap_text(description, self.font, text_area_width)
+
+        # Calculate text starting position (below image)
+        text_x = middle_x + (column_width - text_area_width) // 2
+        text_y = image_y + new_height + 20  # 20px padding below the image
+
+        self.screen.blit(image, (image_x, image_y)) 
+
+        for line in wrapped_lines:
+            text_surface = self.font.render(line, True, self.main_font_color)  
+            self.screen.blit(text_surface, (text_x, text_y))
+            text_y += self.font.get_height()  
+
+        pygame.display.flip()
+ 
+
+    def wrap_text(self, text, font, max_width):
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        for word in words:
+            test_line = current_line + " " + word if current_line else word
+            test_width, _ = font.size(test_line)
+
+            if test_width <= max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines
 
 
