@@ -25,8 +25,10 @@ class StatsView():
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .75, SCREEN_HEIGHT * .75))
 
         self.current_view = 'main'
-        self.special_view = SpecialView(self.screen, self.area, weather_api_key, stocks_api_key)
-        self.perks_view = PerksView(self.screen, self.area)
+        self.special_view = SpecialView(self.screen, self.area, weather_api_key, stocks_api_key, self)
+        self.perks_view = PerksView(self.screen, self.area, self)
+
+        self.active_perks = {}
 
         self.buttons = [
             Button(self.area.x + 75, 65, 75, 25, "S.P.E.C.I.A.L", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('S.P.E.C.I.A.L')),
@@ -78,13 +80,18 @@ class StatsView():
         return action
 
 
+    def update_perk_status(self, perk_name, is_active):
+        self.active_perks[perk_name] = is_active
+
+
 
 class SpecialView():
     CHARISMA_REFRESH_INTERVAL = 180
 
-    def __init__(self, screen, area, weather_api_key, stocks_api_key):
+    def __init__(self, screen, area, weather_api_key, stocks_api_key, stats_view):
         self.screen = screen
         self.area = area
+        self.stats_view = stats_view
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
         self.special_logo = pygame.image.load("assets/images/special_logo.png")
         self.special_logo = pygame.transform.scale(self.special_logo, (SCREEN_WIDTH , SCREEN_HEIGHT * .5))
@@ -168,6 +175,7 @@ class SpecialView():
             self.stats_dict[self.current_stat]()
 
         self.draw_buttons()
+        self.check_skills()
     
 
     def draw_buttons(self):
@@ -188,6 +196,7 @@ class SpecialView():
             print(f"{button_name} button clicked!")
 
             if button_name in self.stats_dict:
+                self.current_frame = 0 #reset sprite sheet frames
                 self.stop_stats_thread()
                 self.current_stat = button_name
                 self.start_stats_thread(self.current_stat)
@@ -266,6 +275,16 @@ class SpecialView():
 
             time.sleep(0.1)
     
+
+    def check_skills(self):
+        self.stats_view.update_perk_status('Strength', (self.strength_value - 5) >= 2)
+        self.stats_view.update_perk_status('Perception', (self.perception_value - 5) >= 2)
+        self.stats_view.update_perk_status('Endurance', (self.endurance_value - 5) >= 2)
+        self.stats_view.update_perk_status('Charisma', (self.charisma_value - 5) >= 2)
+        self.stats_view.update_perk_status('Intelligence', (self.intelligence_value - 5) >= 2)
+        self.stats_view.update_perk_status('Agility', (self.agility_value - 5) >= 2)
+        self.stats_view.update_perk_status('Luck', (self.luck_value - 5) >= 2)
+
 
     # Charisma calculation is slow due to network pinging, so it is in another thread that runs every few minutes outside the charisma view
     # to ensure the data will be there to display and not block the rest of the app
@@ -552,26 +571,26 @@ class SpecialView():
 
         self.screen.blit(luck_text, (center_x, y_offset))
 
-        weather_luck_text = self.font.render(f"{self.luck_manager.luck_events['weather_lucky'] if self.luck_manager.luck_events['weather_lucky'] != '' else 'No lucky event for weather'}",
+        weather_luck_text = self.font.render(f"{self.luck_manager.luck_events['weather_lucky'] + '(+1)' if self.luck_manager.luck_events['weather_lucky'] != '' else 'No lucky event for weather'}",
                                               True, self.main_font_color)
         self.screen.blit(weather_luck_text, (col1_x, y_offset + 30))
 
-        weather_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['weather_unlucky'] if self.luck_manager.luck_events['weather_unlucky'] != '' else 'No unlucky event for weather'}", 
+        weather_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['weather_unlucky'] + '(-1)' if self.luck_manager.luck_events['weather_unlucky'] != '' else 'No unlucky event for weather'}", 
                                                 True, self.main_font_color)
         self.screen.blit(weather_unlucky_text, (col1_x, y_offset + 60))
 
-        stocks_luck_text = self.font.render(f"{self.luck_manager.luck_events['stocks_lucky'] if self.luck_manager.luck_events['stocks_lucky'] != '' else 'No lucky event for stocks'}",
+        stocks_luck_text = self.font.render(f"{self.luck_manager.luck_events['stocks_lucky'] + '(+1)' if self.luck_manager.luck_events['stocks_lucky'] != '' else 'No lucky event for stocks'}",
                                               True, self.main_font_color)
         self.screen.blit(stocks_luck_text, (col1_x, y_offset + 90))
 
-        stocks_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['stocks_unlucky'] if self.luck_manager.luck_events['stocks_unlucky'] != '' else 'No unlucky event for stocks'}", 
+        stocks_unlucky_text = self.font.render(f"{self.luck_manager.luck_events['stocks_unlucky'] + '(-1)' if self.luck_manager.luck_events['stocks_unlucky'] != '' else 'No unlucky event for stocks'}", 
                                                 True, self.main_font_color)
         self.screen.blit(stocks_unlucky_text, (col1_x, y_offset + 120))
 
-        lucky_range_text = self.font.render(f"{self.luck_manager.lucky_range}", True, self.main_font_color)
+        lucky_range_text = self.font.render(f"{self.luck_manager.lucky_range + '(+1)' if self.luck_manager.lucky_range != '' else ''}", True, self.main_font_color)
         self.screen.blit(lucky_range_text, (col1_x, y_offset + 150))
 
-        unlucky_range_text = self.font.render(f"{self.luck_manager.unlucky_range}", True, self.main_font_color)
+        unlucky_range_text = self.font.render(f"{self.luck_manager.unlucky_range + '(-1)' if self.luck_manager.lucky_range != '' else ''}", True, self.main_font_color)
         self.screen.blit(unlucky_range_text, (col1_x, y_offset + 150))
 
         frame_width = self.luck_sprite.get_width() // 14
@@ -585,9 +604,10 @@ class SpecialView():
 
 
 class PerksView():
-    def __init__(self, screen, area):
+    def __init__(self, screen, area, stats_view):
         self.screen = screen
         self.area = area
+        self.stats_view = stats_view
         self.font = pygame.font.Font('assets/fonts/monofonto_rg.otf', 20)
         self.main_font_color = (95, 255, 177, 128)
         self.current_perk = None
@@ -633,19 +653,54 @@ class PerksView():
             'Idiot Savant': {
                 'description': "You're not stupid! Just... different. Randomly receive 3x XP from any action, and the lower your Intelligence, the greater the chance.",
                 'image': pygame.image.load("assets/images/idiot_savant.png").convert_alpha()
-            }
+            },
+            'Rooted': {
+                'description': "Stability is strength. The system gains a defensive edge when grounded and steady.",
+                'image': pygame.image.load("assets/images/rooted.png").convert_alpha()
+            },
+            'Concentrated Fire': {
+                'description': "The system locks onto data with precision. Faster, more accurate disk operations.",
+                'image': pygame.image.load("assets/images/concentrated_fire.png").convert_alpha()
+            },
+            'Life Giver': {
+                'description': "The longer it runs, the stronger it gets. Uptime grants increased resilience.",
+                'image': pygame.image.load("assets/images/life_giver.png").convert_alpha()
+            },
+            'Inspirational': {
+                'description': "Systems play nicely with others—seamless network interactions and data flow.",
+                'image': pygame.image.load("assets/images/inspirational.png").convert_alpha()
+            },
+            'Nerd Rage': {
+                'description': "The system kicks into overdrive under pressure. Smarter resource management during high loads.",
+                'image': pygame.image.load("assets/images/nerd_rage.png").convert_alpha()
+            },
+            'Action Boy/Girl': {
+                'description': "The system keeps moving—higher responsiveness and faster data transfers.",
+                'image': pygame.image.load("assets/images/action_boy.png").convert_alpha()
+            },
+            'Mysterious Stranger': {
+                'description': "Out of nowhere, a helping hand arrives—unexpected system boosts when you least expect them.",
+                'image': pygame.image.load("assets/images/mysterious_stranger.png").convert_alpha()
+            },
         }
     
 
     def draw(self):
         self.draw_buttons()
+        for perk, is_active in self.stats_view.active_perks.items():
+            color = (95, 255, 177) if is_active else (150, 150, 150)
+            text_surface = self.stats_view.font.render(perk, True, color)
+            self.screen.blit(text_surface, (self.area.x + 20, self.area.y + 20))
+
         self.display_perk(self.current_perk)
     
 
     def draw_buttons(self):
         for button in self.buttons:
             button.draw(self.screen)
-
+        # print(self.stats_view.active_perks)
+        # {'Strength': True, 'Perception': False, 'Endurance': True, 'Charisma': True, 'Intelligence': False, 'Agility': False, 'Luck': False}
+        
 
     def handle_event(self, event):
         for button in self.buttons:
