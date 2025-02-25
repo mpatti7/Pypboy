@@ -23,6 +23,7 @@ class StatsView():
 
         self.background_image = pygame.image.load("assets/images/pipboy_stats_no_background.png")
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH * .75, SCREEN_HEIGHT * .75))
+        self.stats_sprite = pygame.image.load("assets/sprite_sheets/main_stats_sprite_sheet.png")
 
         self.current_view = 'main'
         self.special_view = SpecialView(self.screen, self.area, weather_api_key, stocks_api_key, self)
@@ -35,13 +36,20 @@ class StatsView():
             Button(self.area.right - (self.area.right * .25), 65, 75, 25, "Perks", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Perks')),
         ]
 
-            
+
     def draw_background(self):
         if self.current_view == 'main':
             self.background_image.set_alpha(128)
-            center_x = self.area.left + (self.area.width - self.background_image.get_width()) // 2
-            center_y = self.area.top + (self.area.height - self.background_image.get_height()) // 2
-            self.screen.blit(self.background_image, (center_x, center_y))
+            # center_x = self.area.left + (self.area.width - self.background_image.get_width()) // 2
+            # center_y = self.area.top + (self.area.height - self.background_image.get_height()) // 2
+            # self.screen.blit(self.background_image, (center_x, center_y))
+            frame_width = self.stats_sprite.get_width() // 30 
+            frame_height = self.stats_sprite.get_height()
+            center_x = self.area.left + (self.area.width - frame_width) // 2
+            center_y = self.area.top + (self.area.height - frame_height) // 2
+
+            self.special_view.animate_sprite(self.stats_sprite, self.screen, center_x, center_y, 30)
+
 
         elif self.current_view == 'special':
             self.special_view.draw()
@@ -277,13 +285,13 @@ class SpecialView():
     
 
     def check_skills(self):
-        self.stats_view.update_perk_status('Strength', (self.strength_value - 5) >= 2)
-        self.stats_view.update_perk_status('Perception', (self.perception_value - 5) >= 2)
-        self.stats_view.update_perk_status('Endurance', (self.endurance_value - 5) >= 2)
-        self.stats_view.update_perk_status('Charisma', (self.charisma_value - 5) >= 2)
-        self.stats_view.update_perk_status('Intelligence', (self.intelligence_value - 5) >= 2)
-        self.stats_view.update_perk_status('Agility', (self.agility_value - 5) >= 2)
-        self.stats_view.update_perk_status('Luck', (self.luck_value - 5) >= 2)
+        self.stats_view.update_perk_status('Rooted', self.strength_value >= 6)
+        self.stats_view.update_perk_status('Concentrated Fire', self.perception_value >= 6)
+        self.stats_view.update_perk_status('Life Giver', self.endurance_value >= 6)
+        self.stats_view.update_perk_status('Inspirational', self.charisma_value >= 6)
+        self.stats_view.update_perk_status('Nerd Rage', self.intelligence_value >= 6)
+        self.stats_view.update_perk_status('Action Boy/Girl', self.agility_value >= 6)
+        self.stats_view.update_perk_status('Mysterious Stranger', self.luck_value >= 6)
 
 
     # Charisma calculation is slow due to network pinging, so it is in another thread that runs every few minutes outside the charisma view
@@ -306,7 +314,7 @@ class SpecialView():
         self.charisma_value = SpecialCalculator.calculate_charisma(self.devices, self.device_count, self.gateway_status)
         
     
-    def get_sprite_sheet_frames(self, sprite_sheet, num_frames):
+    def get_sprite_sheet_frames(self, sprite_sheet, num_frames, scale_factor=1):
         frame_width = sprite_sheet.get_width() // num_frames
         frame_height = sprite_sheet.get_height()
 
@@ -317,6 +325,8 @@ class SpecialView():
             # Ensure the frame rectangle fits within the image boundary
             if frame_rect.right <= sprite_sheet.get_width():
                 frame = sprite_sheet.subsurface(frame_rect).copy()
+                new_size = (int(frame_width * scale_factor), int(frame_height * scale_factor))
+                frame = pygame.transform.scale(frame, new_size)
                 frames.append(frame)
             else:
                 print(f"Skipping invalid frame at index {i}. Rectangle exceeds surface bounds.")
@@ -324,8 +334,8 @@ class SpecialView():
         return frames
 
 
-    def animate_sprite(self, sprite_sheet, screen, x, y, num_frames):
-        frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames)
+    def animate_sprite(self, sprite_sheet, screen, x, y, num_frames, scale_factor=1):
+        frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames, scale_factor)
         frame_delay = 150
         now = pygame.time.get_ticks()
         if now - self.last_update > frame_delay:
@@ -620,9 +630,16 @@ class PerksView():
             Button(self.area.right - (self.area.right * .87), 295, 75, 25, "Hacker", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Hacker')),
             Button(self.area.right - (self.area.right * .87), 325, 75, 25, "Quick Hands", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Quick Hands')),
             Button(self.area.right - (self.area.right * .87), 355, 75, 25, "Idiot Savant", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Idiot Savant')),
-        
+        ]
+        self.skill_buttons = [
             Button(self.area.right - (self.area.right * .23), 125, 75, 25, "Skill Based", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('')),
-
+            Button(self.area.right - (self.area.right * .23), 175, 75, 25, "Rooted", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Rooted')),
+            Button(self.area.right - (self.area.right * .23), 205, 75, 25, "Concentrated Fire", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Concentrated Fire')),
+            Button(self.area.right - (self.area.right * .23), 235, 75, 25, "Life Giver", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Life Giver')),
+            Button(self.area.right - (self.area.right * .23), 265, 75, 25, "Inspirational", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Inspirational')),
+            Button(self.area.right - (self.area.right * .23), 295, 75, 25, "Nerd Rage", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Nerd Rage')),
+            Button(self.area.right - (self.area.right * .23), 325, 75, 25, "Action Boy/Girl", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Action Boy/Girl')),
+            Button(self.area.right - (self.area.right * .23), 355, 75, 25, "Mysterious Stranger", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Mysterious Stranger')),
         ]
 
         self.perks = {
@@ -654,6 +671,9 @@ class PerksView():
                 'description': "You're not stupid! Just... different. Randomly receive 3x XP from any action, and the lower your Intelligence, the greater the chance.",
                 'image': pygame.image.load("assets/images/idiot_savant.png").convert_alpha()
             },
+        }
+
+        self.skill_perks = {
             'Rooted': {
                 'description': "Stability is strength. The system gains a defensive edge when grounded and steady.",
                 'image': pygame.image.load("assets/images/rooted.png").convert_alpha()
@@ -687,24 +707,34 @@ class PerksView():
 
     def draw(self):
         self.draw_buttons()
-        for perk, is_active in self.stats_view.active_perks.items():
-            color = (95, 255, 177) if is_active else (150, 150, 150)
-            text_surface = self.stats_view.font.render(perk, True, color)
-            self.screen.blit(text_surface, (self.area.x + 20, self.area.y + 20))
-
         self.display_perk(self.current_perk)
     
 
     def draw_buttons(self):
         for button in self.buttons:
             button.draw(self.screen)
-        # print(self.stats_view.active_perks)
-        # {'Strength': True, 'Perception': False, 'Endurance': True, 'Charisma': True, 'Intelligence': False, 'Agility': False, 'Luck': False}
         
+        for skill in self.skill_buttons:
+            if skill.text == 'Skill Based':
+                skill.draw(self.screen)
+            elif skill.text in self.stats_view.active_perks:
+                if self.stats_view.active_perks[skill.text]:
+                    skill.text_color = (95, 255, 177)
+                    skill.draw(self.screen)
+                else:
+                    skill.text_color = (150, 150, 150)
+                    skill.draw(self.screen)
+            else:
+                skill.text_color = (150, 150, 150)
+                skill.draw(self.screen)
+                
 
     def handle_event(self, event):
         for button in self.buttons:
             button.handle_event(event)
+
+        for skill in self.skill_buttons:
+            skill.handle_event(event)
     
 
     def create_action(self, button_name):
@@ -712,19 +742,24 @@ class PerksView():
             # Set this button active and all others inactive
             for button in self.buttons:
                 button.is_active = (button.text == button_name)
+            
+            for skill in self.skill_buttons:
+                skill.is_active = (skill.text == button_name)
             print(f"{button_name} button clicked!")
 
             self.current_perk = button_name
-            # self.display_perk(button_name)
 
         return action
     
 
     def display_perk(self, perk_name):
-        if perk_name not in self.perks:
-            return 
+        if perk_name in self.perks:
+            perk = self.perks[perk_name]
+        elif perk_name in self.skill_perks:
+            perk = self.skill_perks[perk_name]
+        else:
+            return
 
-        perk = self.perks[perk_name]
         image = perk['image']
         description = perk['description']
 

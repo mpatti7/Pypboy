@@ -75,8 +75,8 @@ class Header():
             Button(10, 10, 75, 25, "Stats", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Stats'), is_active=True),
             Button(75, 10, 75, 25, "Map", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Map')),
             Button(150, 10, 75, 25, "Weather", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Weather')),
-            Button(225, 10, 75, 25, "Radio", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Radio')),
-            Button(300, 10, 75, 25, "Game", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Game')),
+            Button(225, 10, 75, 25, "Game", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Game')),
+            Button(300, 10, 75, 25, "Radio", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Radio')),
         ]
         self.set_active_view = set_active_view_callback
 
