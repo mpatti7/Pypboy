@@ -336,7 +336,7 @@ class SpecialView():
 
     def animate_sprite(self, sprite_sheet, screen, x, y, num_frames, scale_factor=1):
         frames = self.get_sprite_sheet_frames(sprite_sheet, num_frames, scale_factor)
-        frame_delay = 150
+        frame_delay = 125
         now = pygame.time.get_ticks()
         if now - self.last_update > frame_delay:
             self.current_frame = (self.current_frame + 1) % num_frames
