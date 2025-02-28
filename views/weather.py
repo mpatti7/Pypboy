@@ -23,7 +23,8 @@ class WeatherView():
             'Clear': '',
             'Light rain': '',
             'Overcast': '',
-            'Patchy light snow': ''
+            'Patchy light snow': '',
+            'Mist': ''
         }
     
 
