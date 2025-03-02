@@ -506,9 +506,9 @@ class SpecialView():
             self.screen.blit(intel_text, (center_x, y_offset))
 
             devices_text = self.font.render(f"Stock Prices: ", True, self.main_font_color)
-            self.screen.blit(devices_text, (col1_x, y_offset + 50))
+            self.screen.blit(devices_text, (col1_x, y_offset + 25 if SCREEN_WIDTH != 800 and SCREEN_HEIGHT != 480 else y_offset+50))
             
-            price_y_offset = y_offset + 100
+            price_y_offset = y_offset + 50 if SCREEN_WIDTH != 800 and SCREEN_HEIGHT != 480 else y_offset+100
             for company in self.stocks_fetcher.stocks_data.keys():
                 diff = float(self.stocks_fetcher.stocks_data[company]['closing_price']) - float(self.stocks_fetcher.stocks_data[company]['opening_price'])
                 text = self.font.render(f"{company}: ${self.stocks_fetcher.stocks_data[company]['closing_price']}", True, self.main_font_color)

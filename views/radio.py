@@ -35,14 +35,14 @@ class RadioView():
 
         self.buttons = [
             Button(self.area.x + 50, 50, 75, 25, "Kiss 108", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Kiss 108')),
-            Button(self.area.x + 50, 100, 75, 25, "Magic 106.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Magic 106.7')),
-            Button(self.area.x + 50, 150, 75, 25, "WROR 105.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('WROR 105.7')),
-            Button(self.area.x + 50, 200, 75, 25, "Big 103.3", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Big 103.3')),
-            Button(self.area.x + 50, 250, 75, 25, "WXLO 104.5", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('WXLO 104.5')),
-            Button(self.area.x + 50, 300, 75, 25, "Mix 104.1", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Mix 104.1')),
-            Button(self.area.x + 75, 350, 100, 25, "98.5 The Sports Hub", self.font, (95, 255, 177), (95, 255, 177), transparent=True, 
+            Button(self.area.x + 50, 90, 75, 25, "Magic 106.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Magic 106.7')),
+            Button(self.area.x + 50, 130, 75, 25, "WROR 105.7", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('WROR 105.7')),
+            Button(self.area.x + 50, 170, 75, 25, "Big 103.3", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Big 103.3')),
+            Button(self.area.x + 50, 210, 75, 25, "WXLO 104.5", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('WXLO 104.5')),
+            Button(self.area.x + 50, 250, 75, 25, "Mix 104.1", self.font, (95, 255, 177), (95, 255, 177), transparent=True, action=self.create_action('Mix 104.1')),
+            Button(self.area.x + 75, 290, 100, 25, "98.5 The Sports Hub", self.font, (95, 255, 177), (95, 255, 177), transparent=True, 
                    action=self.create_action('98.5 The Sports Hub')),
-            Button(self.area.x + 75, 400, 100, 25, "Traffic on the 3s", self.font, (95, 255, 177), (95, 255, 177), transparent=True, 
+            Button(self.area.x + 75, 330, 100, 25, "Traffic on the 3s", self.font, (95, 255, 177), (95, 255, 177), transparent=True, 
                    action=self.create_action('Traffic on the 3s')),
         ]
 
