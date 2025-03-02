@@ -64,6 +64,11 @@ class MapView():
 
             if os.path.exists(cached_map):
                 self.map_image = pygame.image.load(cached_map)
+                if SCREEN_HEIGHT != 480 and SCREEN_WIDTH != 800:
+                    original_width, original_height = self.map_image.get_width(), self.map_image.get_height()
+                    new_width = int(original_width * 0.9)  # 10% reduction in width
+                    new_height = int(original_height * 0.85)  # 15% reduction in height
+                    self.map_image = pygame.transform.scale(self.map_image, (new_width, new_height))
                 print('Cached map used!')
                 return 'Cached map image used!'
 
@@ -86,6 +91,11 @@ class MapView():
                 with open(f"assets/maps/map_image_{lat}_{lon}.png", "wb") as f:
                     f.write(response.content)
                 self.map_image = pygame.image.load(f"assets/maps/map_image_{lat}_{lon}.png")
+                if SCREEN_HEIGHT != 480 and SCREEN_WIDTH != 800:
+                    original_width, original_height = self.map_image.get_width(), self.map_image.get_height()
+                    new_width = int(original_width * 0.9)  # 10% reduction in width
+                    new_height = int(original_height * 0.85)  # 15% reduction in height
+                    self.map_image = pygame.transform.scale(self.map_image, (new_width, new_height))
                 return "Map image saved!"
             else:
                 print("Error fetching map:", response.text)

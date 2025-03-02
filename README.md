@@ -13,6 +13,11 @@ Install library for VLC: `sudo apt install libvlc-dev`
 
 Install GDAL Development Libraries on Pi: `sudo apt install -y gdal-bin libgdal-dev`
 
+If there are issues with installing GDAL, it may need to be built from source if versions are wrong
+
+**Important** 
+May need to change the version of pyproj in `requirements.txt` to `3.6.1`
+
 On Pi: 
 `export GDAL_CONFIG=/usr/bin/gdal-config`
 
