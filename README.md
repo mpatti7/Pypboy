@@ -79,12 +79,43 @@ After, run the first command from here: https://pyproj4.github.io/pyproj/stable/
 
 `python -m pip install pyproj`
 
+## Building SDL and Pygame with NEON Optimization
+This warning will pop up every time when running the code on the pi. You can try building the SDL and Pygame libraries with
+NEON optimizations to help with performance, but in my experience, nothing changes. I made a test virtual environment where
+I installed `pip install -r requirements.txt` then did `pip uninstall pygame`. You may need to do `pip install cython`.
+
+Refer to these resources:
+
+[GitHub Discussion](https://github.com/pygame/pygame/issues/2455)
+
+[SDL Info](https://wiki.libsdl.org/SDL2/README/raspberrypi)
+
+Clone the SDL repo, make a new directory in it, `mkdir build` and navigate to it, then 
+
+`export CFLAGS="-mfpu=neon -mfloat-abi=hard"`
+
+`cmake .. -DCMAKE_BUILD_TYPE=Release -DSDL_ARM_NEON=ON -G "Ninja"`
+
+`ninja`
+
+`sudo ninja install`
+
+Now for Pygame:
+
+`export CFLAGS="-mfpu=neon -mfloat-abi=hard"`
+
+`export PYGAME_DETECT_AVX2=1`
+
+`git clone https://github.com/pygame/pygame.git`
+
+Navigate to the repo `cd pygame`
+
+According to the GitHub discussion linked above,  run `python setup.py install -enable-arm-neon`
+
 ## Resources:
 
-Google Maps Themes: https://snazzymaps.com/
+[Google Maps Themes](https://snazzymaps.com/)
 
-Example Fallout Icons: https://www.behance.net/gallery/27377197/Weather-App-Fallout 
+[Vault Boy Icons](https://fallout.fandom.com/wiki/Category:Vault_Boy_images)
 
-DB to find Radio Station Stream URLs: https://www.radio-browser.info/ and https://fmstream.org/index.php?c=FT
-
-Vault Boy Icons: https://fallout.fandom.com/wiki/Category:Vault_Boy_images
+[FM Stream](https://fmstream.org/index.php?c=FT) and [Radio Browser](https://www.radio-browser.info/) for radio station stream URLs
