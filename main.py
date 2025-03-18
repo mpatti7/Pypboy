@@ -13,7 +13,7 @@ ROTARY_POSITIONS = {
     4: "Stats",
     17: "Map",
     27: "Weather",
-    22: "Game",
+    23: "Game",
     22: "Radio"
 }
 
