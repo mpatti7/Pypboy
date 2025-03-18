@@ -10,11 +10,11 @@ import RPi.GPIO as GPIO
 # os.environ["SDL_AUDIODRIVER"] = "dummy"
 
 ROTARY_POSITIONS = {
-    2: "Stats",
-    3: "Map",
-    4: "Weather",
-    17: "Game",
-    27: "Radio"
+    4: "Stats",
+    17: "Map",
+    27: "Weather",
+    22: "Game",
+    22: "Radio"
 }
 
 ROTARY_SWITCH_EVENT = pygame.USEREVENT + 1
